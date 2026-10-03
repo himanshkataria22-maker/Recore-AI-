@@ -1,0 +1,92 @@
+{
+  "name": "LegacyBillingPython",
+  "repo": "enterprise/legacy-billing-py",
+  "branch": "main (v2.14-legacy)",
+  "lastAnalysis": "2026-10-03T11:45:00Z",
+  "totalModules": 12,
+  "totalLoc": 5157,
+  "criticalRisks": 6,
+  "highRisks": 4,
+  "modernizedPercent": 16.7,
+  "testsPassingPercent": 94.2,
+  "avgComplexity": 22.4,
+  "overallHealthScore": 38,
+  "riskDistribution": [
+    {
+      "level": "critical",
+      "count": 6,
+      "color": "#ef4444"
+    },
+    {
+      "level": "high",
+      "count": 4,
+      "color": "#f97316"
+    },
+    {
+      "level": "medium",
+      "count": 1,
+      "color": "#eab308"
+    },
+    {
+      "level": "low",
+      "count": 1,
+      "color": "#22c55e"
+    }
+  ],
+  "topVulnerabilities": [
+    {
+      "type": "sql_injection",
+      "count": 4,
+      "severity": "critical"
+    },
+    {
+      "type": "hardcoded_secret",
+      "count": 4,
+      "severity": "critical"
+    },
+    {
+      "type": "no_tests",
+      "count": 8,
+      "severity": "high"
+    },
+    {
+      "type": "high_complexity",
+      "count": 4,
+      "severity": "high"
+    },
+    {
+      "type": "deprecated_api",
+      "count": 4,
+      "severity": "medium"
+    }
+  ],
+  "recentActivity": [
+    {
+      "id": "ACT-01",
+      "type": "approval",
+      "message": "Module auth.py modern migration approved by sarah.chen@recore.ai",
+      "timestamp": "18 minutes ago",
+      "moduleId": "auth"
+    },
+    {
+      "id": "ACT-02",
+      "type": "modernization",
+      "message": "Validation run completed for billing.py: 47/47 behavior tests preserved (100% parity)",
+      "timestamp": "42 minutes ago",
+      "moduleId": "billing"
+    },
+    {
+      "id": "ACT-03",
+      "type": "warning",
+      "message": "Critical SQL Injection detected in export_service.py os.system command invocation",
+      "timestamp": "1 hour ago",
+      "moduleId": "export_service"
+    },
+    {
+      "id": "ACT-04",
+      "type": "analysis",
+      "message": "Full AST dependency graph compiled (12 modules, 28 edge relationships)",
+      "timestamp": "2 hours ago"
+    }
+  ]
+}

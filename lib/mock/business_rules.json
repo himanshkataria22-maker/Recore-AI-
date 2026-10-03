@@ -1,0 +1,90 @@
+[
+  {
+    "id": "RULE-101",
+    "moduleId": "billing",
+    "moduleName": "billing.py",
+    "plainEnglish": "Enterprise VIP Platinum customers receive automatic flat billing of $8,999/mo regardless of seat count, but are excluded from promotional coupon stacking.",
+    "codeSnippet": "if plan_code == 'ENTERPRISE_CUSTOM' and tier == 'VIP_PLATINUM':\n    subtotal = 8999.00\n    exempt_from_stacking = True",
+    "line": 158,
+    "confidence": 98,
+    "category": "pricing",
+    "implication": "Must preserve flat $8,999 pricing tier in new billing engine without triggering variable seat fees."
+  },
+  {
+    "id": "RULE-102",
+    "moduleId": "discounts",
+    "moduleName": "discounts.py",
+    "plainEnglish": "Accounts created between 2018 and 2020 are granted a permanent 25% legacy loyalty discount across all standard subscription tiers.",
+    "codeSnippet": "if str(created_at).startswith(('2018', '2019', '2020')):\n    discount += 0.25  # Grandfathered 25%",
+    "line": 14,
+    "confidence": 96,
+    "category": "pricing",
+    "implication": "Grandfathered discount rate must be migrated into customer loyalty ledger to prevent churn."
+  },
+  {
+    "id": "RULE-103",
+    "moduleId": "tax_calculator",
+    "moduleName": "tax_calculator.py",
+    "plainEnglish": "EU corporate customers with validated VAT IDs (length > 5 chars in UK/DE/FR/IT) receive 0% reverse-charge VAT on cross-border transactions.",
+    "codeSnippet": "if vat_num and len(vat_num) > 5 and region in ['UK', 'DE', 'FR', 'IT']:\n    return 0.0 # Reverse charge applied",
+    "line": 16,
+    "confidence": 99,
+    "category": "compliance",
+    "implication": "Reverse charge exemption is legally mandated for EU B2B sales and must not be charged standard VAT."
+  },
+  {
+    "id": "RULE-104",
+    "moduleId": "subscription",
+    "moduleName": "subscription.py",
+    "plainEnglish": "Accounts transitioning to cancelled state receive an unadvertised 72-hour grace period before API keys are deactivated.",
+    "codeSnippet": "if status == 'CANCELLATION_REQUESTED':\n    grace_until = datetime.utcnow() + timedelta(hours=72)\n    account.status = 'GRACE_PERIOD'",
+    "line": 204,
+    "confidence": 92,
+    "category": "workflow",
+    "implication": "Immediate hard token revocation will break active customer background sync jobs."
+  },
+  {
+    "id": "RULE-105",
+    "moduleId": "auth",
+    "moduleName": "auth.py",
+    "plainEnglish": "A fallback backdoor password ('admin456') grants instant superuser privileges with user_id=0, bypassing all database lookups.",
+    "codeSnippet": "if password_raw == MASTER_PASS:\n    return {\"user_id\": 0, \"username\": \"root_admin\", \"role\": \"superuser\", \"is_super\": True}",
+    "line": 18,
+    "confidence": 100,
+    "category": "security",
+    "implication": "CRITICAL SECURITY RISK: Must be eliminated in modern version, replaced with scoped IAM roles."
+  },
+  {
+    "id": "RULE-106",
+    "moduleId": "billing",
+    "moduleName": "billing.py",
+    "plainEnglish": "Cumulative discounts are capped at a maximum of 50% across all loyalty, referral, and promotional coupon rules.",
+    "codeSnippet": "return min(discount, 0.50)  # Capped at 50%",
+    "line": 21,
+    "confidence": 95,
+    "category": "pricing",
+    "implication": "Prevent negative or zero margin invoices from uncontrolled coupon stacking."
+  },
+  {
+    "id": "RULE-107",
+    "moduleId": "payment_gateway",
+    "moduleName": "payment_gateway.py",
+    "plainEnglish": "Failed card charges trigger immediate asynchronous Slack notifications to the #billing-ops escalation channel before throwing runtime errors.",
+    "codeSnippet": "if resp.status_code != 200:\n    notification.alert_billing_ops(f\"Charge failed for {customer_id}\")\n    raise RuntimeError(\"Payment declined\")",
+    "line": 24,
+    "confidence": 94,
+    "category": "workflow",
+    "implication": "Ops team relies on automated alerting for dunning and recovery workflows."
+  },
+  {
+    "id": "RULE-108",
+    "moduleId": "invoice",
+    "moduleName": "invoice.py",
+    "plainEnglish": "Invoices over $10,000 USD require a dual-signature audit hash generated into the PDF footer metadata.",
+    "codeSnippet": "if total_amount >= 10000.00:\n    pdf_metadata['compliance_dual_sign'] = generate_audit_hash(invoice_id, 'CFO_AUTO')",
+    "line": 118,
+    "confidence": 91,
+    "category": "compliance",
+    "implication": "Enterprise audit compliance check for SOX / SOC2 invoice authenticity."
+  }
+]
