@@ -48,6 +48,7 @@ test_endpoint "GET" "/project/summary" "" "Dashboard Project Summary"
 # 3. Discovered Modules
 test_endpoint "GET" "/modules" "" "List Codebase Modules"
 test_endpoint "GET" "/modules/discounts" "" "Get Single Module: discounts"
+test_endpoint "GET" "/modules/discounts/insights" "" "Get Explainable AI Insights"
 test_endpoint "GET" "/modules/billing" "" "Get Single Module: billing"
 
 # 4. Business Rules
@@ -58,8 +59,9 @@ test_endpoint "GET" "/modules/billing/rules" "" "Module Rules: billing.py"
 # 5. Dependency Graph
 test_endpoint "GET" "/graph" "" "Dependency Graph & Nodes"
 
-# 6. Modernization Plan
+# 6. Modernization Plan & AI Explanation
 test_endpoint "GET" "/plan" "" "Prioritized Modernization Plan"
+test_endpoint "GET" "/plan/explain" "" "AI DAG Modernization Sequencing Rationale"
 
 # 7. Blast Radius
 test_endpoint "GET" "/blast-radius/db_utils" "" "Blast Radius: db_utils"
@@ -72,11 +74,18 @@ test_endpoint "POST" "/modules/discounts/generate-tests" "" "Generate Behavioral
 test_endpoint "POST" "/modules/discounts/modernize" "" "Synthesize Modernized discounts.py"
 test_endpoint "GET" "/validation/discounts" "" "Get discounts ValidationRun"
 
-# 10. Approval & Rollback
+# 10. Strangler Routing & Shadow Comparison
+test_endpoint "GET" "/modules/discounts/route" "" "Get Strangler Routing Target"
+test_endpoint "POST" "/modules/discounts/route" '{"target": "legacy"}' "Toggle Route: Legacy"
+test_endpoint "POST" "/modules/discounts/route" '{"target": "modernized"}' "Toggle Route: Modernized"
+test_endpoint "POST" "/modules/discounts/shadow-run" "" "Run Shadow Comparison"
+test_endpoint "GET" "/modules/discounts/report" "" "Download Audit Report (.md)"
+
+# 11. Approval & Rollback
 test_endpoint "POST" "/validation/discounts/approve" '{"status": "approved", "notes": "Automated smoke test sign-off", "reviewerName": "qa_lead"}' "Approve discounts.py"
 test_endpoint "POST" "/modules/discounts/rollback" "" "Rollback discounts.py to v0"
 
-# 11. Codebase Analysis Trigger
+# 12. Codebase Analysis Trigger
 test_endpoint "POST" "/analyze" '{}' "Trigger AST Static Analysis"
 
 echo "========================================================"

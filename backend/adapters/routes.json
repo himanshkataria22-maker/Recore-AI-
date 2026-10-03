@@ -1,0 +1,17 @@
+{
+  "discounts": {
+    "target": "modernized",
+    "lastUpdated": "2026-10-03T17:33:19.117800Z",
+    "adapterPath": "C:\\Users\\Dell\\Desktop\\recore-ai\\backend\\adapters\\discounts_adapter.py"
+  },
+  "config": {
+    "target": "modernized",
+    "lastUpdated": "2026-10-03T17:39:40.090220Z",
+    "adapterPath": "C:\\Users\\Dell\\Desktop\\recore-ai\\backend\\adapters\\config_adapter.py"
+  },
+  "billing": {
+    "target": "modernized",
+    "lastUpdated": "2026-10-03T17:41:54.251591Z",
+    "adapterPath": "C:\\Users\\Dell\\Desktop\\recore-ai\\backend\\adapters\\billing_adapter.py"
+  }
+}

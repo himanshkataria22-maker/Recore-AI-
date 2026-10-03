@@ -1,0 +1,23 @@
+{
+  "projectId": "test-upload-o9gq5k",
+  "analyzedAt": "2026-10-03T17:51:31.226848Z",
+  "totalModules": 2,
+  "modules": [
+    {
+      "id": "main",
+      "name": "main.py",
+      "path": "main.py",
+      "riskScore": 27,
+      "riskLevel": "low",
+      "issuesCount": 1
+    },
+    {
+      "id": "utils",
+      "name": "utils.py",
+      "path": "utils.py",
+      "riskScore": 27,
+      "riskLevel": "low",
+      "issuesCount": 1
+    }
+  ]
+}

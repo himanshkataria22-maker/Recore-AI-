@@ -1,0 +1,23 @@
+{
+  "projectId": "test-upload-kbznuf",
+  "analyzedAt": "2026-10-03T17:53:42.371595Z",
+  "totalModules": 2,
+  "modules": [
+    {
+      "id": "main",
+      "name": "main.py",
+      "path": "main.py",
+      "riskScore": 27,
+      "riskLevel": "low",
+      "issuesCount": 1
+    },
+    {
+      "id": "utils",
+      "name": "utils.py",
+      "path": "utils.py",
+      "riskScore": 27,
+      "riskLevel": "low",
+      "issuesCount": 1
+    }
+  ]
+}

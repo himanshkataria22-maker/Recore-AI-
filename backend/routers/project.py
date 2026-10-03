@@ -13,12 +13,13 @@ from ..models.schema import (
     DependencyGraphEdge,
     DependencyGraphPosition,
     ModernizationPlan,
+    PlanExplanation,
     RiskDistributionItem,
     TopVulnerabilityItem,
     RecentActivityItem
 )
 from ..analyzer.engine import CodebaseAnalyzer
-from ..planner.plan import generate_modernization_plan
+from ..planner.plan import generate_modernization_plan, explain_plan_recommendation
 
 router = APIRouter(tags=["project"])
 
@@ -169,3 +170,10 @@ def get_modernization_plan_route():
     """Returns prioritized modernization plan and effort projections."""
     modules = analyzer.analyze()
     return generate_modernization_plan(modules)
+
+@router.get("/plan/explain", response_model=PlanExplanation)
+def get_plan_explanation_route():
+    """Explains why the top module was recommended for initial refactoring."""
+    modules = analyzer.analyze()
+    return explain_plan_recommendation(modules)
+

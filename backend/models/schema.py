@@ -183,3 +183,54 @@ class DependencyGraphEdge(CamelBaseModel):
 class DependencyGraphData(CamelBaseModel):
     nodes: List[DependencyGraphNode]
     edges: List[DependencyGraphEdge]
+
+class AIInsightRiskReason(CamelBaseModel):
+    reason: str
+    evidence_issue_id: str
+    line: int
+
+class AIInsight(CamelBaseModel):
+    module_id: str
+    summary: str
+    why_risky: List[AIInsightRiskReason]
+    suggested_fix: str
+    confidence: int
+
+class PlanExplanation(CamelBaseModel):
+    recommended_module_id: str
+    module_name: str
+    reason: str
+    details: str
+    blast_radius_score: int
+    risk_reduction: int
+    confidence: int
+
+RouteTarget = Literal["legacy", "modernized"]
+
+class ModuleRoute(CamelBaseModel):
+    module_id: str
+    target: RouteTarget
+    adapter_path: Optional[str] = None
+    last_updated: Optional[str] = None
+
+class RouteUpdateRequest(CamelBaseModel):
+    target: RouteTarget
+
+class ShadowRunCase(CamelBaseModel):
+    id: Optional[str] = None
+    name: Optional[str] = None
+    input: str
+    legacy_output: Any
+    modernized_output: Any
+    match: bool
+    duration_ms: Optional[int] = 0
+
+class ShadowRunResult(CamelBaseModel):
+    module_id: str
+    target: RouteTarget
+    total_cases: int
+    matched_cases: int
+    match_rate: float
+    cases: List[ShadowRunCase]
+    executed_at: str
+

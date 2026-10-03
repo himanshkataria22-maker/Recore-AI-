@@ -124,6 +124,11 @@ class ModernizerEngine:
         run_id = f"VAL-RUN-{datetime.utcnow().strftime('%Y%m%d')}-{module.id.upper()}"
         now_iso = datetime.utcnow().isoformat() + "Z"
 
+        # 8. Auto-generate strangler adapter and configure routing
+        from ..adapters.generator import ensure_adapter_exists, set_module_route
+        ensure_adapter_exists(module, raw_code=code)
+        set_module_route(module.id, "modernized")
+
         validation_run = ValidationRun(
             module_id=module.id,
             module_name=module.name,
@@ -149,7 +154,7 @@ class ModernizerEngine:
         return validation_run
 
     def rollback_module(self, module_id: str) -> bool:
-        """Restores v0 legacy baseline."""
+        """Restores v0 legacy baseline and sets strangler route back to legacy."""
         mod_dir, v0_path, v1_path = self._get_version_paths(module_id)
         if os.path.exists(v0_path):
             with open(v0_path, "r", encoding="utf-8") as f:
@@ -157,6 +162,10 @@ class ModernizerEngine:
             # Overwrite v1 with v0
             with open(v1_path, "w", encoding="utf-8") as f:
                 f.write(legacy_code)
+
+            # Reset strangler traffic routing back to legacy baseline
+            from ..adapters.generator import set_module_route
+            set_module_route(module_id, "legacy")
             return True
         return False
 

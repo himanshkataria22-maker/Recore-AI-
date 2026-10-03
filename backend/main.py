@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 
-from .routers import modules, project, analysis
+from .routers import modules, project, analysis, upload
 
 app = FastAPI(
     title="ReCore AI API",
@@ -41,6 +41,9 @@ app.include_router(project.router, prefix="/api/v1")
 
 app.include_router(analysis.router, prefix="/api")
 app.include_router(analysis.router, prefix="/api/v1")
+
+app.include_router(upload.router, prefix="/api")
+app.include_router(upload.router, prefix="/api/v1")
 
 @app.get("/api/health", tags=["system"])
 @app.get("/api/v1/health", tags=["system"])

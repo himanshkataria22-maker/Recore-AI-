@@ -1,0 +1,66 @@
+[
+  {
+    "id": "main",
+    "name": "main.py",
+    "path": "main.py",
+    "loc": 27,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 27,
+    "riskLevel": "low",
+    "issues": [
+      {
+        "id": "ISSUE-MAIN-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for main.py.",
+        "snippet": "# Missing test suite for main.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "main.py module managing main logic with 1 static analysis findings.",
+    "rawCode": "\"\"\"\nSimple test module for upload testing.\n\"\"\"\n\ndef calculate_total(items):\n    \"\"\"Calculate total price of items.\"\"\"\n    total = 0\n    for item in items:\n        total += item.get('price', 0) * item.get('quantity', 1)\n    return total\n\n\ndef apply_discount(total, discount_percent):\n    \"\"\"Apply discount to total.\"\"\"\n    return total * (1 - discount_percent / 100)\n\n\nclass Order:\n    \"\"\"Simple order class.\"\"\"\n    \n    def __init__(self, customer_id):\n        self.customer_id = customer_id\n        self.items = []\n    \n    def add_item(self, name, price, quantity=1):\n        \"\"\"Add an item to the order.\"\"\"\n        self.items.append({\n            'name': name,\n            'price': price,\n            'quantity': quantity\n        })\n    \n    def get_total(self):\n        \"\"\"Get order total.\"\"\"\n        return calculate_total(self.items)\n",
+    "aiExplanation": "Analysis of main.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-03T17:53:42.371595Z"
+  },
+  {
+    "id": "utils",
+    "name": "utils.py",
+    "path": "utils.py",
+    "loc": 9,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 27,
+    "riskLevel": "low",
+    "issues": [
+      {
+        "id": "ISSUE-UTILS-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for utils.py.",
+        "snippet": "# Missing test suite for utils.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "utils.py module managing utils logic with 1 static analysis findings.",
+    "rawCode": "\"\"\"\nUtility functions for testing.\n\"\"\"\n\ndef format_currency(amount):\n    \"\"\"Format amount as currency.\"\"\"\n    return f\"${amount:.2f}\"\n\n\ndef validate_email(email):\n    \"\"\"Basic email validation.\"\"\"\n    return '@' in email and '.' in email\n",
+    "aiExplanation": "Analysis of utils.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-03T17:53:42.371595Z"
+  }
+]

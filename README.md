@@ -1,104 +1,155 @@
-# ReCore AI — Enterprise Legacy-Code Modernization Platform
+# ReCore AI — Enterprise Legacy Code Modernization Engine
 
-**ReCore AI** is an enterprise-grade developer platform designed to de-risk and automate legacy codebase modernizations (e.g. Python 2/3 legacy billing, microservices, monolithic apps). It provides AST-based dependency graphs, interactive blast-radius calculation, hidden business rule extraction, prioritized modernization scheduling, and deterministic parity test validation.
+**ReCore AI** is an autonomous, enterprise-grade migration and modernization platform engineered to safely refactor and de-risk mission-critical legacy codebases (e.g., Python 2/3 procedural billing, monoliths, microservices).
 
----
-
-## ⚡ Key Features
-
-1. **Executive Dashboard (`/`)**
-   - High-level KPIs: Total Modules, Critical Risks, Modernized %, Behavior Tests Passing.
-   - Interactive Risk Distribution & Security Vulnerability Breakdown charts (Recharts).
-   - "Start New Analysis" modal with Drag-and-Drop ZIP / Git repo scanner and real-time step simulation.
-   - Codebase module catalog with risk filtering and direct inspection links.
-
-2. **AST Dependency Graph & Blast Radius Engine (`/graph`)**
-   - Interactive React Flow DAG mapping modules, LOC node sizing, and risk-level color codes.
-   - **Interactive Blast Radius:** Clicking any node highlights the exact direct and transitive downstream modules at risk in glowing red, dims unaffected nodes, and opens a telemetry panel with cumulative impact scores.
-
-3. **Module Inspector (`/module/[id]`)**
-   - **Overview Tab:** Circular SVG Risk Gauge (0–100), metadata (LOC, complexity, coverage, dependents), and pinpointed issue list with CWE tags and remediation suggestions.
-   - **AST Code Inspection Tab:** Read-only syntax view with highlighted issue lines and tooltips.
-   - **Business Rule Extractor Tab:** AI AST-extracted hidden domain rules (e.g., grandfathered discounts, EU VAT reverse charge) in plain English linked to code snippets with confidence badges and a one-click Markdown spec export.
-   - **AI Diagnostic Insights Tab:** Explainable "Why is this risky" breakdowns and recommended target stack architectures.
-
-4. **Modernization Execution Planner (`/planner`)**
-   - Optimized DAG sequence timeline with dev-day effort estimation and projected risk drop.
-   - Risk-vs-Value Priority Quadrant chart (Quick Wins vs Strategic Overhauls).
-   - Direct "Modernize this module" execution triggers.
-
-5. **Parity Validation & Proof (`/validate/[id]`)**
-   - **Hero Screen:** Big *"47/47 Behavior Tests Preserved"* certification badge.
-   - Interactive animated test matrix with real-time test runner simulation, assertion telemetry, and fuzzer inputs.
-   - Side-by-side & Unified Code Diff Viewer (LOC and complexity reduction indicators).
-   - Dual-key Human Verification & Sign-off Gate (Approve / Reject with notes and audit timestamps).
-   - Instant 1-click Rollback and Downloadable Audit Proof Certificate (`.md`).
+It combines AST static analysis, LLM-powered business rule extraction, deterministic Golden Master behavioral verification, Strangler Pattern API routing, and explainable AI diagnostics.
 
 ---
 
-## 🚀 Getting Started
+## ⚡ Key Highlights & Architecture
+
+- **Ground-Truth Explainable AI Insights (Feature A)**: Evidence-backed diagnostics citing exact AST vulnerability IDs and source line numbers with interactive click-to-line code jumping. Discards any hallucinated citations.
+- **Strangler Pattern Routing & Shadow Execution (Feature B)**: Auto-generates zero-downtime Python adapters (`/backend/adapters/<moduleId>_adapter.py`) preserving 100% contract signatures. Includes live traffic routing toggles and concurrent shadow runs comparing legacy (v0) vs modernized (v1) outputs.
+- **Topological DAG Modernization Planner**: Prioritized execution sequence based on risk reduction ROI, leaf independence, and blast radius impact score. Explains *why* each step is recommended.
+- **Deterministic Golden Master Behavioral Parity**: Automatic test synthesis recording baseline behaviors in SQLite sandboxes to guarantee zero logic regression before deployment.
+- **Formal Modernization Audit Reports**: One-click downloadable Markdown compliance audit reports covering remediations, test proofs, approval logs, and active routing status.
+
+---
+
+## 🚀 Run Locally
 
 ### 1. Prerequisites
-- **Node.js**: v18.0.0 or higher (Node 22+ recommended)
-- **NPM**: v9.0.0 or higher
+- **Python**: 3.10+ (Python 3.11 recommended)
+- **Node.js**: 18.0+ (Node 20+ recommended)
+- **NPM**: 9.0+
 
-### 2. Installation
+---
+
+### 2. Backend Setup (FastAPI)
+
 ```bash
-# Navigate to project directory
-cd scratch/recore-ai
+# Navigate to backend directory
+cd backend
 
 # Install dependencies
-npm install
+pip install -r requirements.txt
+
+# Configure environment (optional - defaults to deterministic DEMO_MODE)
+cp .env.example .env
+
+# Start FastAPI development server on port 8000
+uvicorn main:app --reload --port 8000
 ```
 
-### 3. Run Development Server
+Backend API will be running at `http://localhost:8000`.  
+Swagger Interactive API Documentation: `http://localhost:8000/docs`.
+
+---
+
+### 3. Frontend Setup (Next.js 15 App Router)
+
 ```bash
+# In a new terminal, navigate to frontend directory
+cd frontend
+
+# Install frontend dependencies
+npm install
+
+# Configure environment
+cp .env.example .env.local
+
+# Start Next.js development server on port 3000
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 4. Build for Production
-```bash
-npm run build
-npm run start
-```
-
 ---
 
-## 🔌 Switching from Mock Data to Real FastAPI Backend
+### 4. Environment Variables Setup
 
-All data interactions are decoupled through a single typed API abstraction layer at `lib/api.ts`.
-
-To switch from mock data to a live backend:
-
-1. Create a `.env.local` file in the root directory:
+#### Backend (`/backend/.env`):
 ```env
-# Set to 'false' to route calls to your live backend
+# Optional LLM API Keys (If blank, ReCore AI operates seamlessly in offline DEMO_MODE)
+GEMINI_API_KEY=your_gemini_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
+
+# LLM Provider: 'gemini' or 'groq'
+LLM_PROVIDER=gemini
+
+# Set to true to enforce offline disk cache
+DEMO_MODE=false
+```
+
+#### Frontend (`/frontend/.env.local`):
+```env
+# Set to 'false' to connect to live FastAPI backend at localhost:8000
 NEXT_PUBLIC_USE_MOCK=false
 
-# Base URL for your FastAPI or REST API server
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+# Backend API endpoint URL
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
-
-2. Implement the corresponding FastAPI endpoints adhering to the data contracts defined in `lib/types.ts`:
-- `GET /api/v1/project/summary` &rarr; `ProjectSummary`
-- `GET /api/v1/modules` &rarr; `Module[]`
-- `GET /api/v1/modules/{id}` &rarr; `Module`
-- `GET /api/v1/graph` &rarr; `DependencyGraphData`
-- `GET /api/v1/business-rules` &rarr; `BusinessRule[]`
-- `GET /api/v1/plan` &rarr; `ModernizationPlan`
-- `GET /api/v1/validation/{id}` &rarr; `ValidationRun`
-- `POST /api/v1/validation/{id}/approve` &rarr; `{ success: true }`
-- `POST /api/v1/modules/{id}/rollback` &rarr; `{ success: true }`
-- `POST /api/v1/analyze` &rarr; `{ success: true }`
 
 ---
 
-## 🛠️ Technology Stack
-- **Framework:** Next.js 15+ (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS + Custom Dark Theme
-- **Graph Visualization:** `@xyflow/react` (React Flow)
-- **Analytics & Charts:** `recharts`
-- **Animations:** `framer-motion` & `canvas-confetti`
-- **Icons:** `lucide-react`
+## 🧪 Running Tests & Smoke Tests
+
+### Backend Unit Tests (Pytest)
+```bash
+python -c "import os, pytest; os.environ['PYTEST_DISABLE_PLUGIN_AUTOLOAD'] = '1'; pytest.main(['backend/tests'])"
+```
+
+### End-to-End API Smoke Test
+
+#### Cross-Platform Python Runner:
+```bash
+python scripts/smoke_test.py
+```
+
+#### Windows PowerShell:
+```powershell
+.\scripts\smoke-test.ps1
+```
+
+#### Linux / macOS Bash:
+```bash
+bash scripts/smoke-test.sh
+```
+
+---
+
+## 📁 Repository Structure
+
+```
+recore-ai/
+├── backend/                  # FastAPI Python backend service
+│   ├── adapters/             # Auto-generated Strangler Pattern adapters
+│   ├── analyzer/             # AST syntax tree parser, complexity & security engine
+│   ├── cache/                # Disk cache for LLM responses & AST analysis
+│   ├── extractor/            # Domain rule extractor
+│   ├── golden/               # Golden master recorded baseline assertions
+│   ├── llm/                  # Provider-agnostic LLM client (Gemini & Groq)
+│   ├── models/               # Pydantic v2 data models & schemas
+│   ├── modernizer/           # Modernization synthesis & rollback engine
+│   ├── planner/              # Topological DAG scheduler & blast radius calculator
+│   ├── routers/              # REST API route handlers (/modules, /project, /analysis)
+│   ├── sample_legacy_app/    # Sample legacy Python 2/3 enterprise app
+│   ├── tester/               # Behavioral test generator & golden runner
+│   ├── tests/                # Pytest unit & integration test suite
+│   ├── versions/             # Version snapshots (v0_legacy vs v1_modernized)
+│   ├── main.py               # FastAPI entrypoint
+│   └── requirements.txt      # Python dependencies
+│
+├── frontend/                 # Next.js 15+ React Frontend (App Router)
+│   ├── app/                  # Pages: Dashboard, Graph, Module, Planner, Validate
+│   ├── components/           # UI components, layout, diff viewer, test runner
+│   ├── lib/                  # TypeScript types, API client, mock fallbacks
+│   ├── public/               # Static assets & SVG icons
+│   ├── next.config.ts        # Next.js configuration
+│   ├── package.json          # Node dependencies
+│   └── tsconfig.json         # TypeScript configuration
+│
+├── scripts/                  # Cross-platform smoke test suites (.py, .ps1, .sh)
+├── .gitignore                # Root gitignore protecting secrets & build artifacts
+└── README.md                 # Project documentation
+```

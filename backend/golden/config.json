@@ -1,0 +1,55 @@
+[
+  {
+    "case": {
+      "id": "TC-01",
+      "name": "Enterprise VIP Platinum flat rate ($8,999)",
+      "function": "calculate_monthly_billing_cycle",
+      "args": [
+        "CUST-002",
+        "2026-10-01",
+        true
+      ],
+      "kwargs": {},
+      "type": "invariant",
+      "note": "VIP Platinum customers receive $8,999 rate with no stacking"
+    },
+    "success": false,
+    "expected_output": "Exception: AttributeError - module 'tmpa6hdl7q8.config' has no attribute 'calculate_monthly_billing_cycle'",
+    "duration_ms": 316
+  },
+  {
+    "case": {
+      "id": "TC-02",
+      "name": "Growth Tier customer preview billing",
+      "function": "calculate_monthly_billing_cycle",
+      "args": [
+        "CUST-001",
+        "2026-10-01",
+        true
+      ],
+      "kwargs": {},
+      "type": "regression",
+      "note": "Standard customer preview calculation"
+    },
+    "success": false,
+    "expected_output": "Exception: AttributeError - module 'tmpa6hdl7q8.config' has no attribute 'calculate_monthly_billing_cycle'",
+    "duration_ms": 195
+  },
+  {
+    "case": {
+      "id": "TC-03",
+      "name": "Late fee calculation (>30 days overdue)",
+      "function": "calculate_late_fee",
+      "args": [
+        1000.0,
+        45
+      ],
+      "kwargs": {},
+      "type": "edge_case",
+      "note": "2% late fee penalty applied after 30 days"
+    },
+    "success": false,
+    "expected_output": "Exception: AttributeError - module 'tmpa6hdl7q8.config' has no attribute 'calculate_late_fee'",
+    "duration_ms": 212
+  }
+]
