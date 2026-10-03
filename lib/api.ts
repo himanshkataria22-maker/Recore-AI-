@@ -310,3 +310,128 @@ export async function triggerAnalysis(
   if (!res.ok) throw new Error("Analysis failed");
   return res.json();
 }
+
+/**
+ * Fetch blast radius impact and transitive dependents for a module
+ */
+export async function getBlastRadius(moduleId: string): Promise<{
+  moduleId: string;
+  directDependents: string[];
+  transitiveDependents: string[];
+  totalAffectedModules: number;
+  impactScore: number;
+  riskLevel: string;
+}> {
+  if (USE_MOCK) {
+    await delay(120);
+    const modules = mockModules as unknown as Module[];
+    const mod = modules.find((m) => m.id === moduleId);
+    const direct = mod ? mod.usedBy : [];
+    return {
+      moduleId,
+      directDependents: direct,
+      transitiveDependents: direct.length > 2 ? ["export_service"] : [],
+      totalAffectedModules: direct.length + (direct.length > 2 ? 1 : 0),
+      impactScore: Math.min(95, direct.length * 20),
+      riskLevel: direct.length > 3 ? "critical" : direct.length > 1 ? "high" : "medium",
+    };
+  }
+
+  const res = await fetch(`${API_BASE_URL}/blast-radius/${moduleId}`);
+  if (!res.ok) throw new Error(`Failed to fetch blast radius for ${moduleId}`);
+  return res.json();
+}
+
+/**
+ * Trigger behavioral test generation for a module
+ */
+export async function generateModuleTests(moduleId: string): Promise<{
+  moduleId: string;
+  casesTotal: number;
+  cases: Array<{
+    id: string;
+    name: string;
+    function: string;
+    args: unknown[];
+    kwargs: Record<string, unknown>;
+    type: string;
+    note: string;
+  }>;
+}> {
+  if (USE_MOCK) {
+    await delay(250);
+    return {
+      moduleId,
+      casesTotal: 6,
+      cases: [
+        {
+          id: "TC-01",
+          name: `Contract verification for ${moduleId}`,
+          function: "main_routine",
+          args: ["sample_id"],
+          kwargs: {},
+          type: "regression",
+          note: "Base regression parity case",
+        },
+      ],
+    };
+  }
+
+  const res = await fetch(`${API_BASE_URL}/modules/${moduleId}/generate-tests`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error(`Failed to generate tests for ${moduleId}`);
+  return res.json();
+}
+
+/**
+ * Trigger end-to-end modernization, test generation, and golden master verification
+ */
+export async function modernizeModule(moduleId: string): Promise<ValidationRun> {
+  if (USE_MOCK) {
+    await delay(600);
+    const run = await getValidationRun(moduleId);
+    if (!run) throw new Error(`Module ${moduleId} validation not found`);
+    return run;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/modules/${moduleId}/modernize`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error(`Modernization failed for module ${moduleId}`);
+  return res.json();
+}
+
+/**
+ * Fetch backend health status and demo mode state
+ */
+export async function getHealthStatus(): Promise<{
+  status: string;
+  service: string;
+  demoMode: boolean;
+  cacheServing?: boolean;
+  version: string;
+}> {
+  if (USE_MOCK) {
+    return {
+      status: "healthy",
+      service: "recore-ai-frontend-mock",
+      demoMode: true,
+      cacheServing: true,
+      version: "1.0.0",
+    };
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/health`);
+    if (!res.ok) throw new Error("Health check failed");
+    return res.json();
+  } catch {
+    return {
+      status: "unreachable",
+      service: "recore-ai-backend",
+      demoMode: false,
+      version: "unknown",
+    };
+  }
+}

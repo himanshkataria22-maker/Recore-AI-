@@ -12,9 +12,9 @@
       "type": "regression",
       "note": "Accounts from 2018-2020 must receive 25% discount"
     },
-    "success": true,
-    "expected_output": 0.35,
-    "duration_ms": 278
+    "success": false,
+    "expected_output": "Process failed: Fatal Python error: init_sys_streams: can't initialize sys standard streams\nPython runtime state: core initialized\nTraceback (most recent call last):\n  File \"<frozen codecs>\", line 309, in __init__\nKeyboardInterrupt",
+    "duration_ms": 42
   },
   {
     "case": {
@@ -31,7 +31,7 @@
     },
     "success": true,
     "expected_output": 0.35,
-    "duration_ms": 230
+    "duration_ms": 199
   },
   {
     "case": {
@@ -56,7 +56,7 @@
       "final_total": 1000.0,
       "requires_manager_approval": false
     },
-    "duration_ms": 453
+    "duration_ms": 132
   },
   {
     "case": {
@@ -81,7 +81,7 @@
       "final_total": 1900.0,
       "requires_manager_approval": false
     },
-    "duration_ms": 180
+    "duration_ms": 131
   },
   {
     "case": {
@@ -106,7 +106,7 @@
       "final_total": 8800.0,
       "requires_manager_approval": true
     },
-    "duration_ms": 174
+    "duration_ms": 127
   },
   {
     "case": {
@@ -122,6 +122,6 @@
     },
     "success": true,
     "expected_output": 0.1,
-    "duration_ms": 182
+    "duration_ms": 123
   }
 ]

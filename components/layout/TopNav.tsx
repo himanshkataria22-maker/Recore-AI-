@@ -1,18 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   GitBranch,
   Search,
   Sparkles,
   ShieldCheck,
-  Bell,
-  HelpCircle,
-  ExternalLink,
-  ChevronDown,
-  Code2,
+  Zap,
+  Radio,
 } from "lucide-react";
 import { UploadAnalysisModal } from "../ui/UploadAnalysisModal";
+import { getHealthStatus } from "@/lib/api";
 
 interface TopNavProps {
   onSearchChange?: (query: string) => void;
@@ -21,6 +19,17 @@ interface TopNavProps {
 export const TopNav: React.FC<TopNavProps> = ({ onSearchChange }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDemoMode, setIsDemoMode] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    getHealthStatus()
+      .then((res) => {
+        setIsDemoMode(Boolean(res.demoMode));
+      })
+      .catch(() => {
+        setIsDemoMode(false);
+      });
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -42,9 +51,20 @@ export const TopNav: React.FC<TopNavProps> = ({ onSearchChange }) => {
             </span>
           </div>
 
-          <span className="hidden md:inline-flex items-center gap-1 text-xs text-slate-400 font-mono px-2.5 py-1 rounded-md bg-slate-900/60 border border-slate-800/80">
-            AST Engine: <strong className="text-slate-200 ml-1">v4.1.2</strong>
-          </span>
+          {/* Demo mode indicator */}
+          {isDemoMode && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-amber-300 font-mono px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30">
+              <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400/20" />
+              <span>Demo Mode (Cached)</span>
+            </span>
+          )}
+
+          {!isDemoMode && isDemoMode !== null && (
+            <span className="hidden md:inline-flex items-center gap-1.5 text-xs text-emerald-400 font-mono px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+              <Radio className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Live LLM Active</span>
+            </span>
+          )}
         </div>
 
         {/* Center Search Input */}

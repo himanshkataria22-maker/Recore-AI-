@@ -40,6 +40,7 @@ export default function ValidationProofPage() {
   const [loading, setLoading] = useState(true);
   const [approvalNotes, setApprovalNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModernizing, setIsModernizing] = useState(false);
   const [showRollbackModal, setShowRollbackModal] = useState(false);
   const [isRollingBack, setIsRollingBack] = useState(false);
 
@@ -48,9 +49,6 @@ export default function ValidationProofPage() {
       try {
         const data = await getValidationRun(moduleId);
         setValidation(data);
-        if (data && data.approvalStatus === "approved") {
-          // Trigger subtle celebration confetti on already approved modules
-        }
       } catch (err) {
         console.error("Failed to load validation", err);
       } finally {
@@ -59,6 +57,23 @@ export default function ValidationProofPage() {
     }
     loadValidation();
   }, [moduleId]);
+
+  const handleModernize = async () => {
+    setIsModernizing(true);
+    try {
+      toast.info("Modernization Started", `Generating test matrix & synthesizing modern version for ${moduleId}...`);
+      const run = await modernizeModule(moduleId);
+      setValidation(run);
+      toast.success(
+        "Modernization Complete",
+        `Golden Master verified: ${run.testsPassed}/${run.testsTotal} behavior tests preserved (${run.preservationScore}% parity).`
+      );
+    } catch (err) {
+      toast.error("Modernization Failed", `Could not modernize module ${moduleId}.`);
+    } finally {
+      setIsModernizing(false);
+    }
+  };
 
   const handleApprove = async (status: "approved" | "rejected") => {
     if (!validation) return;
@@ -210,6 +225,15 @@ Deterministic Proof Hash: SHA256:${Math.random().toString(36).substring(2)}${Mat
                 ))}
               </select>
             </div>
+
+            <button
+              onClick={handleModernize}
+              disabled={isModernizing}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-bold text-xs transition-all shadow-md shadow-cyan-500/20 disabled:opacity-50"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${isModernizing ? "animate-spin" : "fill-current"}`} />
+              <span>{isModernizing ? "Synthesizing..." : "Modernize & Test"}</span>
+            </button>
 
             <button
               onClick={handleDownloadAuditReport}

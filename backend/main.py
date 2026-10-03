@@ -46,10 +46,17 @@ app.include_router(analysis.router, prefix="/api/v1")
 @app.get("/api/v1/health", tags=["system"])
 @app.get("/health", tags=["system"])
 def health_check():
-    """Health check endpoint."""
+    """Health check endpoint with demo mode status."""
+    import os
+    is_demo = os.getenv("DEMO_MODE", "true").lower() in ("true", "1", "yes")
+    has_keys = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GROQ_API_KEY"))
+    demo_active = is_demo or not has_keys
+    
     return {
         "status": "healthy",
         "service": "recore-ai-backend",
+        "demoMode": demo_active,
+        "cacheServing": demo_active,
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "version": "1.0.0"
     }
