@@ -149,8 +149,104 @@ class LLMClient:
         """
         prompt_lower = prompt.lower()
         
-        # Business rule extraction fallback
-        if "business rule" in prompt_lower or "extract_business_rules" in prompt_lower:
+        # 1. Behavioral Test Generation Intent
+        if "matrix of test cases" in prompt_lower or "generate_behavior_tests" in prompt_lower or "test scenario" in prompt_lower:
+            if "discounts" in prompt_lower:
+                return {
+                    "cases": [
+                        {
+                            "id": "TC-01",
+                            "name": "Grandfathered 2019 customer loyalty discount (25%)",
+                            "function": "get_customer_discount_multiplier",
+                            "args": ["CUST-001", "GROWTH_TIER"],
+                            "kwargs": {},
+                            "type": "regression",
+                            "note": "Accounts from 2018-2020 must receive 25% discount"
+                        },
+                        {
+                            "id": "TC-02",
+                            "name": "New 2025 customer without grandfathered rate (0%)",
+                            "function": "get_customer_discount_multiplier",
+                            "args": ["CUST-004", "STARTER"],
+                            "kwargs": {},
+                            "type": "regression",
+                            "note": "New accounts without loyalty points receive 0% discount"
+                        },
+                        {
+                            "id": "TC-03",
+                            "name": "Standard bulk order below discount threshold (50 units)",
+                            "function": "calculate_bulk_discount",
+                            "args": [50, 20.0],
+                            "kwargs": {},
+                            "type": "regression",
+                            "note": "Orders < 100 units receive 0% bulk discount"
+                        },
+                        {
+                            "id": "TC-04",
+                            "name": "Bulk tier boundary (100 units, 5% discount)",
+                            "function": "calculate_bulk_discount",
+                            "args": [100, 20.0],
+                            "kwargs": {},
+                            "type": "edge_case",
+                            "note": "Exact boundary condition for 5% bulk discount"
+                        },
+                        {
+                            "id": "TC-05",
+                            "name": "High-volume bulk order with manager approval (500 units, 12% discount)",
+                            "function": "calculate_bulk_discount",
+                            "args": [500, 20.0],
+                            "kwargs": {},
+                            "type": "invariant",
+                            "note": "Orders >= 500 units mandate manager approval flag"
+                        },
+                        {
+                            "id": "TC-06",
+                            "name": "Promo code coupon evaluation",
+                            "function": "apply_recursive_promos",
+                            "args": ["WELCOME10"],
+                            "kwargs": {},
+                            "type": "regression",
+                            "note": "Base promotional code discount verification"
+                        }
+                    ]
+                }
+            elif "billing" in prompt_lower:
+                return {
+                    "cases": [
+                        {
+                            "id": "TC-01",
+                            "name": "Enterprise VIP Platinum flat rate ($8,999)",
+                            "function": "calculate_monthly_billing_cycle",
+                            "args": ["CUST-002", "2026-10-01", True],
+                            "kwargs": {},
+                            "type": "invariant",
+                            "note": "VIP Platinum customers receive $8,999 rate with no stacking"
+                        },
+                        {
+                            "id": "TC-02",
+                            "name": "Growth Tier customer preview billing",
+                            "function": "calculate_monthly_billing_cycle",
+                            "args": ["CUST-001", "2026-10-01", True],
+                            "kwargs": {},
+                            "type": "regression",
+                            "note": "Standard customer preview calculation"
+                        },
+                        {
+                            "id": "TC-03",
+                            "name": "Late fee calculation (>30 days overdue)",
+                            "function": "calculate_late_fee",
+                            "args": [1000.0, 45],
+                            "kwargs": {},
+                            "type": "edge_case",
+                            "note": "2% late fee penalty applied after 30 days"
+                        }
+                    ]
+                }
+            else:
+                return {"cases": []}
+
+        # 2. Business Rule Extraction Intent
+        elif "extract all hidden business rules" in prompt_lower or "business rule analyst" in prompt_lower:
             if "for module 'billing.py'" in prompt_lower or "for module 'billing'" in prompt_lower:
                 return {
                     "rules": [
