@@ -1,31 +1,18 @@
 """
-Modernized Discounts Service (Pydantic v2 & Parameterized Queries).
-Remediates SQL injection and circular recursion while 100% preserving business logic contracts.
+Sample Legacy App - Discount Engine
+Calculates promo codes, loyalty tier discounts, bulk discounts, and recursive coupons.
 """
-from typing import Dict, Any, Optional
 from . import db_utils
 
-def get_customer_discount_multiplier(
-    customer_id: str,
-    plan_code: str,
-    db_path: Optional[str] = None
-) -> float:
+def get_customer_discount_multiplier(customer_id: str, plan_code: str, db_path=None) -> float:
     """
-    Computes customer discount with parameterized query binding.
-    Preserves:
-    - 2018-2020 grandfathered 25% discount
-    - 1000+ loyalty points 10% bonus
-    - STARTUP_ANNUAL 15% discount
-    - Strict 50% max cap
+    Hidden business rule: Legacy users signed up before 2021 get grandfathered 25% discount forever.
+    Loyalty points > 1000 grant an additional 10% discount.
+    Annual plan grants 15% discount. Max total capped at 50%.
     """
     conn = db_utils.get_raw_connection(db_path)
     cursor = conn.cursor()
-    
-    # Safe parameterized query
-    cursor.execute(
-        "SELECT created_at, loyalty_points FROM users WHERE username = ? OR id = 1",
-        (customer_id,)
-    )
+    cursor.execute(f"SELECT created_at, loyalty_points FROM users WHERE username = '{customer_id}' OR id = 1")
     row = cursor.fetchone()
     conn.close()
     
@@ -37,19 +24,22 @@ def get_customer_discount_multiplier(
     discount = 0.0
     
     if str(created_at).startswith(("2018", "2019", "2020")):
-        discount += 0.25
+        discount += 0.25  # Grandfathered 25%
         
     if points and points > 1000:
-        discount += 0.10
+        discount += 0.10  # Loyalty bonus
         
     if plan_code == "STARTUP_ANNUAL":
-        discount += 0.15
+        discount += 0.15  # Annual prepayment
         
-    return min(discount, 0.50)
+    return min(discount, 0.50)  # Capped at 50%
 
-def calculate_bulk_discount(quantity: int, unit_price: float) -> Dict[str, Any]:
+def calculate_bulk_discount(quantity: int, unit_price: float) -> dict:
     """
-    Calculates tiered bulk discounts with manager approval requirements.
+    Business rule:
+    - Bulk orders of 100+ units get 5% off
+    - Bulk orders of 500+ units get 12% off
+    - Any discount over 10% requires manager approval
     """
     base_total = quantity * unit_price
     discount_pct = 0.0
@@ -63,6 +53,7 @@ def calculate_bulk_discount(quantity: int, unit_price: float) -> Dict[str, Any]:
         
     discount_amount = base_total * discount_pct
     final_total = base_total - discount_amount
+    
     requires_approval = discount_pct > 0.10
     
     return {
@@ -77,7 +68,7 @@ def calculate_bulk_discount(quantity: int, unit_price: float) -> Dict[str, Any]:
 
 def apply_recursive_promos(code: str, depth: int = 0) -> float:
     """
-    Evaluates promotional discount codes with recursion depth limit.
+    Recursive discount code evaluation with potential stack overflow.
     """
     if depth > 5:
         return 0.40
