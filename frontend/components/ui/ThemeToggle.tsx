@@ -8,8 +8,7 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    // Load theme from localStorage
+    // Load theme from localStorage first
     const savedTheme = localStorage.getItem("recore-theme") as "light" | "dark" | null;
     if (savedTheme) {
       setTheme(savedTheme);
@@ -18,6 +17,7 @@ export function ThemeToggle() {
       // Default to dark
       applyTheme("dark");
     }
+    setMounted(true);
   }, []);
 
   const applyTheme = (newTheme: "light" | "dark") => {

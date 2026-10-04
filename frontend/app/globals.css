@@ -173,3 +173,75 @@ html.light .react-flow__controls-button:hover {
   background: #f1f5f9 !important;
   fill: #0f172a !important;
 }
+
+/* Login page animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px currentColor);
+  }
+  50% {
+    opacity: 0.6;
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-particle {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(20px);
+    opacity: 0;
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+.animate-float-particle {
+  animation: float-particle 15s linear infinite;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-pulse-glow,
+  .animate-fade-in,
+  .animate-float-particle {
+    animation: none;
+  }
+}

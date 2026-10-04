@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@xyflow/react/dist/style.css";
 import { Providers } from "@/components/providers/Providers";
+import { RouteGuard } from "@/components/auth/RouteGuard";
 import Script from "next/script";
 
 const geistSans = Geist({
@@ -42,7 +43,9 @@ export default function RootLayout({
         </Script>
       </head>
       <body className="min-h-full bg-slate-950 text-slate-100 flex flex-col">
-        <Providers>{children}</Providers>
+        <Providers>
+          <RouteGuard>{children}</RouteGuard>
+        </Providers>
       </body>
     </html>
   );

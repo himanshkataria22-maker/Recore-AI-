@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { UploadAnalysisModal } from "../ui/UploadAnalysisModal";
 import { ThemeToggle } from "../ui/ThemeToggle";
+import { UserMenu } from "../ui/UserMenu";
 import { getHealthStatus } from "@/lib/api";
 
 interface TopNavProps {
@@ -105,6 +106,11 @@ export const TopNav: React.FC<TopNavProps> = ({ onSearchChange }) => {
             <span className="hidden sm:inline">Verification Gate:</span>
             <strong className="text-white">Active</strong>
           </div>
+
+          <div className="h-4 w-px bg-slate-800 dark:bg-slate-800 light:bg-slate-300" />
+
+          {/* User Menu */}
+          <UserMenu />
         </div>
       </header>
 
