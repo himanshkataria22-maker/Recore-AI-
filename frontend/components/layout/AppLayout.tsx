@@ -8,7 +8,7 @@ import { ToastProvider } from "../ui/ToastContext";
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <ToastProvider>
-      <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950">
+      <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950 transition-colors duration-300">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <TopNav />

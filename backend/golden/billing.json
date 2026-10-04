@@ -13,8 +13,8 @@
       "note": "Accounts from 2018-2020 must receive 25% discount"
     },
     "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmph8a99dej.billing' has no attribute 'get_customer_discount_multiplier'",
-    "duration_ms": 990
+    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'get_customer_discount_multiplier'",
+    "duration_ms": 981
   },
   {
     "case": {
@@ -30,7 +30,7 @@
       "note": "New accounts without loyalty points receive 0% discount"
     },
     "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmph8a99dej.billing' has no attribute 'get_customer_discount_multiplier'",
+    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'get_customer_discount_multiplier'",
     "duration_ms": 880
   },
   {
@@ -47,8 +47,8 @@
       "note": "Orders < 100 units receive 0% bulk discount"
     },
     "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmph8a99dej.billing' has no attribute 'calculate_bulk_discount'",
-    "duration_ms": 906
+    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'calculate_bulk_discount'",
+    "duration_ms": 819
   },
   {
     "case": {
@@ -64,8 +64,8 @@
       "note": "Exact boundary condition for 5% bulk discount"
     },
     "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmph8a99dej.billing' has no attribute 'calculate_bulk_discount'",
-    "duration_ms": 697
+    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'calculate_bulk_discount'",
+    "duration_ms": 749
   },
   {
     "case": {
@@ -81,8 +81,8 @@
       "note": "Orders >= 500 units mandate manager approval flag"
     },
     "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmph8a99dej.billing' has no attribute 'calculate_bulk_discount'",
-    "duration_ms": 686
+    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'calculate_bulk_discount'",
+    "duration_ms": 717
   },
   {
     "case": {
@@ -97,7 +97,7 @@
       "note": "Base promotional code discount verification"
     },
     "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmph8a99dej.billing' has no attribute 'apply_recursive_promos'",
-    "duration_ms": 693
+    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'apply_recursive_promos'",
+    "duration_ms": 808
   }
 ]

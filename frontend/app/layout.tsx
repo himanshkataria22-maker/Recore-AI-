@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@xyflow/react/dist/style.css";
 import { Providers } from "@/components/providers/Providers";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,16 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
+      <head>
+        <Script id="theme-script" strategy="beforeInteractive">
+          {`
+            (function() {
+              const theme = localStorage.getItem('recore-theme') || 'dark';
+              document.documentElement.classList.add(theme);
+            })();
+          `}
+        </Script>
+      </head>
       <body className="min-h-full bg-slate-950 text-slate-100 flex flex-col">
         <Providers>{children}</Providers>
       </body>

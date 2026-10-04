@@ -1,0 +1,55 @@
+{
+  "projectId": "shop-legacy-brax3o",
+  "analyzedAt": "2026-10-04T07:24:23.885002Z",
+  "totalModules": 6,
+  "modules": [
+    {
+      "id": "auth",
+      "name": "auth.py",
+      "path": "shop_legacy/auth.py",
+      "riskScore": 38,
+      "riskLevel": "medium",
+      "issuesCount": 2
+    },
+    {
+      "id": "config",
+      "name": "config.py",
+      "path": "shop_legacy/config.py",
+      "riskScore": 52,
+      "riskLevel": "medium",
+      "issuesCount": 2
+    },
+    {
+      "id": "db",
+      "name": "db.py",
+      "path": "shop_legacy/db.py",
+      "riskScore": 47,
+      "riskLevel": "medium",
+      "issuesCount": 2
+    },
+    {
+      "id": "invoice",
+      "name": "invoice.py",
+      "path": "shop_legacy/invoice.py",
+      "riskScore": 32,
+      "riskLevel": "medium",
+      "issuesCount": 1
+    },
+    {
+      "id": "pricing",
+      "name": "pricing.py",
+      "path": "shop_legacy/pricing.py",
+      "riskScore": 32,
+      "riskLevel": "medium",
+      "issuesCount": 1
+    },
+    {
+      "id": "report",
+      "name": "report.py",
+      "path": "shop_legacy/report.py",
+      "riskScore": 27,
+      "riskLevel": "low",
+      "issuesCount": 1
+    }
+  ]
+}

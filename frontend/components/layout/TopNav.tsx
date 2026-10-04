@@ -10,6 +10,7 @@ import {
   Radio,
 } from "lucide-react";
 import { UploadAnalysisModal } from "../ui/UploadAnalysisModal";
+import { ThemeToggle } from "../ui/ThemeToggle";
 import { getHealthStatus } from "@/lib/api";
 
 interface TopNavProps {
@@ -83,6 +84,11 @@ export const TopNav: React.FC<TopNavProps> = ({ onSearchChange }) => {
 
         {/* Right Section Actions */}
         <div className="flex items-center gap-3">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
+          <div className="h-4 w-px bg-slate-800 dark:bg-slate-800 light:bg-slate-300" />
+
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-bold text-xs transition-all shadow-md shadow-cyan-500/20 active:scale-95"
@@ -91,7 +97,7 @@ export const TopNav: React.FC<TopNavProps> = ({ onSearchChange }) => {
             <span>New Analysis</span>
           </button>
 
-          <div className="h-4 w-px bg-slate-800" />
+          <div className="h-4 w-px bg-slate-800 dark:bg-slate-800 light:bg-slate-300" />
 
           {/* Quick status pill */}
           <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-medium">
