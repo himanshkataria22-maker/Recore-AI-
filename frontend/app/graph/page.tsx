@@ -350,7 +350,14 @@ export default function DependencyGraphPage() {
         {/* Main Canvas & Blast Radius Side Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* React Flow Canvas */}
-          <div className={`transition-all ${blastRadiusInfo ? "lg:col-span-8" : "lg:col-span-12"} h-[650px] rounded-2xl border-2 border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden relative shadow-2xl`}>
+          <div 
+            className={`transition-all ${blastRadiusInfo ? "lg:col-span-8" : "lg:col-span-12"} h-[650px] rounded-2xl border border-slate-700 overflow-hidden relative shadow-xl`}
+            style={{
+              background: 'radial-gradient(circle at 1px 1px, #475569 1px, transparent 0)',
+              backgroundSize: '20px 20px',
+              backgroundColor: '#1e293b'
+            }}
+          >
             {loading ? (
               <div className="h-full flex items-center justify-center text-slate-400 gap-2">
                 <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
@@ -365,16 +372,14 @@ export default function DependencyGraphPage() {
                 onEdgesChange={onEdgesChange}
                 onNodeClick={onNodeClick}
                 fitView
-                className="bg-slate-950"
                 minZoom={0.2}
                 maxZoom={1.5}
               >
                 <Background 
-                  color="#334155" 
-                  gap={24} 
-                  size={2}
+                  color="#64748b" 
+                  gap={20} 
+                  size={1.5}
                   variant="dots"
-                  className="opacity-40"
                 />
                 <Controls 
                   className="!bg-slate-900 !border-slate-800"
