@@ -100,20 +100,31 @@ export default function DependencyGraphPage() {
         const rawModules = await getModules();
         setModules(rawModules);
 
-        // Predefined layout coords
+        // Better hierarchical layout
         const positions: Record<string, { x: number; y: number }> = {
-          db_utils: { x: 450, y: 30 },
-          auth: { x: 180, y: 160 },
-          notification: { x: 740, y: 160 },
-          discounts: { x: 60, y: 300 },
-          tax_calculator: { x: 340, y: 300 },
-          payment_gateway: { x: 600, y: 300 },
-          subscription: { x: 860, y: 300 },
-          billing: { x: 450, y: 460 },
-          invoice: { x: 220, y: 620 },
-          report: { x: 680, y: 620 },
-          export_service: { x: 450, y: 760 },
-          audit_log: { x: 820, y: 30 },
+          // Top tier - foundational modules
+          db_utils: { x: 300, y: 50 },
+          audit_log: { x: 700, y: 50 },
+          
+          // Second tier - authentication & notifications  
+          auth: { x: 150, y: 200 },
+          notification: { x: 850, y: 200 },
+          
+          // Third tier - business logic modules (spread out)
+          discounts: { x: 50, y: 350 },
+          tax_calculator: { x: 280, y: 380 },
+          payment_gateway: { x: 520, y: 350 },
+          subscription: { x: 750, y: 380 },
+          
+          // Fourth tier - aggregation layer
+          billing: { x: 400, y: 530 },
+          
+          // Fifth tier - output/reporting
+          invoice: { x: 250, y: 680 },
+          report: { x: 550, y: 680 },
+          
+          // Bottom tier - export services
+          export_service: { x: 400, y: 820 },
         };
 
         const initialNodes: Node[] = rawModules.map((m) => ({
@@ -140,20 +151,22 @@ export default function DependencyGraphPage() {
         const initialEdges: Edge[] = [];
         rawModules.forEach((mod) => {
           mod.dependsOn.forEach((depId) => {
+            const isCritical = mod.riskScore > 80 || rawModules.find(m => m.id === depId)?.riskScore > 80;
             initialEdges.push({
               id: `edge-${mod.id}->${depId}`,
               source: mod.id,
               target: depId,
-              animated: mod.riskScore > 80,
+              type: 'smoothstep',
+              animated: isCritical,
               style: {
-                stroke: "#475569",
-                strokeWidth: 2,
+                stroke: isCritical ? '#f87171' : '#475569',
+                strokeWidth: isCritical ? 2.5 : 1.5,
               },
               markerEnd: {
                 type: MarkerType.ArrowClosed,
-                color: "#64748b",
-                width: 14,
-                height: 14,
+                color: isCritical ? '#f87171' : '#64748b',
+                width: 12,
+                height: 12,
               },
             });
           });
@@ -337,7 +350,7 @@ export default function DependencyGraphPage() {
         {/* Main Canvas & Blast Radius Side Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* React Flow Canvas */}
-          <div className={`transition-all ${blastRadiusInfo ? "lg:col-span-8" : "lg:col-span-12"} h-[650px] rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden relative shadow-2xl`}>
+          <div className={`transition-all ${blastRadiusInfo ? "lg:col-span-8" : "lg:col-span-12"} h-[650px] rounded-2xl border-2 border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden relative shadow-2xl`}>
             {loading ? (
               <div className="h-full flex items-center justify-center text-slate-400 gap-2">
                 <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
@@ -356,8 +369,26 @@ export default function DependencyGraphPage() {
                 minZoom={0.2}
                 maxZoom={1.5}
               >
-                <Background color="#1e293b" gap={20} size={1} />
-                <Controls className="!bg-slate-900 !border-slate-800 !text-white" />
+                <Background 
+                  color="#334155" 
+                  gap={24} 
+                  size={2}
+                  variant="dots"
+                  className="opacity-40"
+                />
+                <Controls 
+                  className="!bg-slate-900 !border-slate-800"
+                  style={{
+                    button: {
+                      backgroundColor: '#1e293b',
+                      color: '#f8fafc',
+                      borderBottom: '1px solid #334155',
+                    }
+                  }}
+                  showZoom={true}
+                  showFitView={true}
+                  showInteractive={true}
+                />
                 <MiniMap
                   nodeStrokeColor="#020617"
                   nodeColor={(node) => {

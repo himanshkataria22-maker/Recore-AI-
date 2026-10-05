@@ -116,7 +116,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-bold text-xs transition-all shadow-lg shadow-cyan-500/20"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-400 hover:via-purple-400 hover:to-pink-400 text-white font-bold text-xs transition-all shadow-lg shadow-purple-500/40 animate-gradient"
             >
               <UploadCloud className="w-4 h-4" />
               Upload Codebase (.zip)
@@ -320,7 +320,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Hero Feature CTA: Blast Radius Graph preview */}
-          <div className="lg:col-span-3 p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 flex flex-col justify-between shadow-xl">
+          <div className="lg:col-span-3 p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between shadow-xl">
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 mb-3">
                 <Zap className="w-3 h-3 text-indigo-400" />
