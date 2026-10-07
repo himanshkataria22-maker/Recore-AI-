@@ -1,24 +1,19 @@
 @import "tailwindcss";
 
-:root {
-  --background: #020617;
-  --foreground: #f8fafc;
-}
+@variant dark (&:where(.dark, .dark *));
 
-/* Light mode variables */
-html.light {
+:root {
   --background: #ffffff;
   --foreground: #0f172a;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
 }
 
-html.light body {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
-}
-
-html.dark body {
-  background-color: #020617 !important;
-  color: #f8fafc !important;
+html.dark {
+  --background: #020617;
+  --foreground: #f8fafc;
+  --card-bg: #0f172a;
+  --card-border: #1e293b;
 }
 
 body {
@@ -29,103 +24,36 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Light mode text color overrides */
-html.light .text-white {
-  color: #0f172a !important;
-}
-
-html.light .text-slate-100 {
-  color: #1e293b !important;
-}
-
-html.light .text-slate-200 {
-  color: #1e293b !important;
-}
-
-html.light .text-slate-300 {
-  color: #475569 !important;
-}
-
-html.light .text-slate-400 {
-  color: #64748b !important;
-}
-
-html.light .text-slate-500 {
-  color: #78858f !important;
-}
-
-html.light .text-slate-600 {
-  color: #94a3b8 !important;
-}
-
-/* Light mode background color overrides */
-html.light .bg-slate-950 {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-}
-
-html.light .bg-slate-900 {
-  background-color: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-}
-
-html.light .bg-slate-800 {
-  background-color: #e2e8f0 !important;
-  border-color: #cbd5e1 !important;
-}
-
-html.light .bg-slate-700 {
-  background-color: #cbd5e1 !important;
-  border-color: #a1aac4 !important;
-}
-
-/* Light mode border color overrides */
-html.light .border-slate-900 {
-  border-color: #cbd5e1 !important;
-}
-
-html.light .border-slate-800 {
-  border-color: #cbd5e1 !important;
-}
-
-html.light .border-slate-700 {
-  border-color: #cbd5e1 !important;
-}
-
-html.light .border-slate-600 {
-  border-color: #cbd5e1 !important;
-}
-
-/* Custom sleek scrollbars - Dark */
+/* Custom sleek scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+html.dark ::-webkit-scrollbar-track {
   background: #090d16;
 }
 
-html.light ::-webkit-scrollbar-track {
-  background: #e2e8f0;
-}
-
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 9999px;
-}
-
-html.light ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 9999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+html.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
 }
 
-html.light ::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
 }
 
 /* React Flow transparent to show container background */
@@ -139,56 +67,56 @@ html.light ::-webkit-scrollbar-thumb:hover {
 
 .react-flow__handle {
   background: #38bdf8 !important;
-  border: 2px solid #020617 !important;
+  border: 2px solid #ffffff !important;
   width: 8px !important;
   height: 8px !important;
 }
 
-html.light .react-flow__handle {
-  border: 2px solid #ffffff !important;
+html.dark .react-flow__handle {
+  border: 2px solid #020617 !important;
 }
 
 .react-flow__edge-path {
-  stroke: #334155 !important;
+  stroke: #94a3b8 !important;
   stroke-width: 2 !important;
 }
 
-html.light .react-flow__edge-path {
-  stroke: #94a3b8 !important;
+html.dark .react-flow__edge-path {
+  stroke: #334155 !important;
 }
 
 .react-flow__controls {
-  background: #0f172a !important;
-  border: 1px solid #1e293b !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
   border-radius: 12px !important;
   overflow: hidden;
 }
 
-html.light .react-flow__controls {
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+html.dark .react-flow__controls {
+  background: #0f172a !important;
+  border: 1px solid #1e293b !important;
 }
 
 .react-flow__controls-button {
-  background: #0f172a !important;
-  border-bottom: 1px solid #1e293b !important;
-  fill: #94a3b8 !important;
-}
-
-html.light .react-flow__controls-button {
   background: #ffffff !important;
   border-bottom: 1px solid #e2e8f0 !important;
   fill: #64748b !important;
 }
 
-.react-flow__controls-button:hover {
-  background: #1e293b !important;
-  fill: #f8fafc !important;
+html.dark .react-flow__controls-button {
+  background: #0f172a !important;
+  border-bottom: 1px solid #1e293b !important;
+  fill: #94a3b8 !important;
 }
 
-html.light .react-flow__controls-button:hover {
+.react-flow__controls-button:hover {
   background: #f1f5f9 !important;
   fill: #0f172a !important;
+}
+
+html.dark .react-flow__controls-button:hover {
+  background: #1e293b !important;
+  fill: #f8fafc !important;
 }
 
 /* Ensure controls are visible */
@@ -212,35 +140,143 @@ html.light .react-flow__controls-button:hover {
   max-height: 16px !important;
 }
 
-/* Login page animations */
-@keyframes float {
+/* Login & Robot Mascot 60fps GPU Animations */
+@keyframes float-robot {
   0%, 100% {
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-15px);
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes shadow-scale {
+  0%, 100% {
+    transform: scaleX(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scaleX(0.72);
+    opacity: 0.12;
+  }
+}
+
+@keyframes antenna-wiggle {
+  0%, 70%, 100% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(6deg);
+  }
+  85% {
+    transform: rotate(-6deg);
+  }
+  92% {
+    transform: rotate(3deg);
   }
 }
 
 @keyframes pulse-glow {
   0%, 100% {
     opacity: 1;
-    filter: drop-shadow(0 0 4px currentColor);
+    filter: drop-shadow(0 0 4px #3b82f6);
   }
   50% {
     opacity: 0.6;
-    filter: drop-shadow(0 0 8px currentColor);
+    filter: drop-shadow(0 0 10px #3b82f6);
   }
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
+@keyframes wave-arm {
+  0%, 70%, 100% {
+    transform: rotate(0deg);
   }
-  to {
+  75% {
+    transform: rotate(-28deg);
+  }
+  80% {
+    transform: rotate(12deg);
+  }
+  85% {
+    transform: rotate(-20deg);
+  }
+  90% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes sway-arm {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(7deg);
+  }
+}
+
+@keyframes wave-hand {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-18deg);
+  }
+  75% {
+    transform: rotate(22deg);
+  }
+}
+
+@keyframes bubble-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.75) translateY(10px);
+  }
+  70% {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1.05) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes bubble-bob {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes head-shake {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  20% {
+    transform: translateX(-12px) rotate(-4deg);
+  }
+  40% {
+    transform: translateX(12px) rotate(4deg);
+  }
+  60% {
+    transform: translateX(-8px) rotate(-2deg);
+  }
+  80% {
+    transform: translateX(8px) rotate(2deg);
+  }
+}
+
+@keyframes happy-jump {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-24px) scale(1.08);
+  }
+  60% {
+    transform: translateY(-10px) scale(1.02);
   }
 }
 
@@ -258,29 +294,64 @@ html.light .react-flow__controls-button:hover {
   }
 }
 
-.animate-float {
-  animation: float 4s ease-in-out infinite;
+.animate-float-robot {
+  animation: float-robot 3.5s ease-in-out infinite;
+}
+
+.animate-shadow-scale {
+  animation: shadow-scale 3.5s ease-in-out infinite;
+}
+
+.animate-antenna-wiggle {
+  transform-origin: bottom center;
+  animation: antenna-wiggle 5s ease-in-out infinite;
 }
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out;
+.animate-wave-arm {
+  transform-origin: top center;
+  animation: wave-arm 7.5s ease-in-out infinite;
+}
+
+.animate-sway-arm {
+  transform-origin: top center;
+  animation: sway-arm 4s ease-in-out infinite;
+}
+
+.animate-wave-hand {
+  transform-origin: bottom right;
+  animation: wave-hand 1.4s ease-in-out infinite;
+}
+
+.animate-bubble-pop {
+  animation: bubble-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-bubble-bob {
+  animation: bubble-bob 3.8s ease-in-out infinite;
 }
 
 .animate-float-particle {
   animation: float-particle 15s linear infinite;
 }
 
-/* Respect reduced motion preference */
+/* Respect reduced motion preference strictly */
 @media (prefers-reduced-motion: reduce) {
-  .animate-float,
+  .animate-float-robot,
+  .animate-shadow-scale,
+  .animate-antenna-wiggle,
   .animate-pulse-glow,
-  .animate-fade-in,
+  .animate-wave-arm,
+  .animate-sway-arm,
+  .animate-wave-hand,
+  .animate-bubble-pop,
+  .animate-bubble-bob,
   .animate-float-particle {
-    animation: none;
+    animation: none !important;
+    transform: none !important;
   }
 }
 
@@ -305,3 +376,5 @@ html.light .react-flow__controls-button:hover {
     background-size: 100% 100%;
   }
 }
+
+
