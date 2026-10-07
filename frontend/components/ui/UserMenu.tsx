@@ -61,9 +61,9 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="
           flex items-center gap-2 px-3 py-1.5 rounded-xl
-          bg-slate-900 dark:bg-slate-900 light:bg-slate-100
-          border border-slate-800 dark:border-slate-800 light:border-slate-300
-          hover:bg-slate-800 dark:hover:bg-slate-800 light:hover:bg-slate-200
+          bg-slate-100 dark:bg-slate-900
+          border border-slate-300 dark:border-slate-800
+          hover:bg-slate-200 dark:hover:bg-slate-800
           transition-all duration-200
           focus:outline-none focus:ring-2 focus:ring-blue-500/50
         "
@@ -84,13 +84,13 @@ export function UserMenu() {
         </div>
 
         {/* Name (hidden on mobile) */}
-        <span className="hidden md:block text-sm font-medium text-slate-200 dark:text-slate-200 light:text-slate-800">
+        <span className="hidden md:block text-sm font-medium text-slate-800 dark:text-slate-200">
           {user.name}
         </span>
 
         {/* Dropdown Icon */}
         <ChevronDown
-          className={`w-4 h-4 text-slate-400 dark:text-slate-400 light:text-slate-600 transition-transform duration-200 ${
+          className={`w-4 h-4 text-slate-600 dark:text-slate-400 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
         />
