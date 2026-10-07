@@ -35,28 +35,28 @@ export const CustomModuleNode = memo(({ data, selected }: NodeProps) => {
       style={{ width: `${minWidth}px` }}
       className={`relative rounded-2xl transition-all duration-300 select-none p-3.5 border ${
         nodeData.isBlastTarget
-          ? "bg-rose-950 border-rose-500 shadow-[0_0_25px_rgba(244,63,94,0.8)] scale-105 z-30"
+          ? "bg-rose-50 dark:bg-rose-950 border-rose-500 shadow-[0_0_25px_rgba(244,63,94,0.6)] scale-105 z-30"
           : nodeData.isBlastAffected
-          ? "bg-rose-950/70 border-rose-500 shadow-[0_0_18px_rgba(244,63,94,0.5)] scale-102 z-20"
+          ? "bg-rose-50/90 dark:bg-rose-950/70 border-rose-400 dark:border-rose-500 shadow-[0_0_18px_rgba(244,63,94,0.3)] scale-102 z-20"
           : selected
-          ? "bg-slate-900 border-cyan-400 shadow-[0_0_15px_rgba(56,189,248,0.4)] z-10"
+          ? "bg-cyan-50 dark:bg-slate-900 border-cyan-500 dark:border-cyan-400 shadow-[0_0_15px_rgba(56,189,248,0.4)] z-10"
           : nodeData.isDimmed
-          ? "opacity-25 bg-slate-950 border-slate-800"
-          : "bg-slate-900/90 border-slate-800 hover:border-slate-700 shadow-xl"
+          ? "opacity-30 bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-800"
+          : "bg-white dark:bg-slate-900/90 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 shadow-xl"
       }`}
     >
       {/* Target input handle */}
       <Handle
         type="target"
         position={Position.Top}
-        className="w-2.5 h-2.5 !bg-cyan-400 !border-slate-950"
+        className="w-2.5 h-2.5 !bg-cyan-500 dark:!bg-cyan-400 !border-white dark:!border-slate-950"
       />
 
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Code2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <span className="font-mono text-xs font-bold text-white truncate">
+          <Code2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
+          <span className="font-mono text-xs font-bold text-slate-900 dark:text-white truncate">
             {nodeData.label}
           </span>
         </div>
@@ -66,7 +66,7 @@ export const CustomModuleNode = memo(({ data, selected }: NodeProps) => {
             <Flame className="w-3 h-3" /> Origin
           </span>
         ) : nodeData.isBlastAffected ? (
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40">
             Affected
           </span>
         ) : (
@@ -81,18 +81,18 @@ export const CustomModuleNode = memo(({ data, selected }: NodeProps) => {
       </div>
 
       {/* Path preview */}
-      <p className="text-[10px] font-mono text-slate-400 truncate mb-2">
+      <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate mb-2">
         {nodeData.path}
       </p>
 
       {/* Stats Bar */}
-      <div className="grid grid-cols-3 gap-1 py-1.5 px-2 rounded-lg bg-slate-950/70 border border-slate-800/60 text-[10px] font-mono text-slate-300">
+      <div className="grid grid-cols-3 gap-1 py-1.5 px-2 rounded-lg bg-slate-100 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/60 text-[10px] font-mono text-slate-700 dark:text-slate-300">
         <div>
-          <span className="text-slate-500 block text-[9px]">LOC</span>
-          <span className="font-semibold text-white">{nodeData.loc}</span>
+          <span className="text-slate-500 dark:text-slate-500 block text-[9px]">LOC</span>
+          <span className="font-semibold text-slate-900 dark:text-white">{nodeData.loc}</span>
         </div>
         <div>
-          <span className="text-slate-500 block text-[9px]">RISK</span>
+          <span className="text-slate-500 dark:text-slate-500 block text-[9px]">RISK</span>
           <span
             className="font-bold"
             style={{ color: riskColor }}
@@ -101,10 +101,10 @@ export const CustomModuleNode = memo(({ data, selected }: NodeProps) => {
           </span>
         </div>
         <div>
-          <span className="text-slate-500 block text-[9px]">ISSUES</span>
+          <span className="text-slate-500 dark:text-slate-500 block text-[9px]">ISSUES</span>
           <span
             className={`font-semibold ${
-              nodeData.issuesCount > 0 ? "text-rose-400" : "text-emerald-400"
+              nodeData.issuesCount > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
             }`}
           >
             {nodeData.issuesCount}
@@ -116,7 +116,7 @@ export const CustomModuleNode = memo(({ data, selected }: NodeProps) => {
       <Handle
         type="source"
         position={Position.Bottom}
-        className="w-2.5 h-2.5 !bg-indigo-400 !border-slate-950"
+        className="w-2.5 h-2.5 !bg-indigo-500 dark:!bg-indigo-400 !border-white dark:!border-slate-950"
       />
     </div>
   );
