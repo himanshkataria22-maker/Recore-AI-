@@ -58,36 +58,37 @@ def _get_active_module():
 # ==============================================================================
 # Public API Facade (100% Contract Preserved)
 # ==============================================================================
-def hash_password(p):
+def hash_password_legacy(raw_password):
     """
-    Strangler proxy for hash_password.
+    Deprecated insecure hash routine without salt.
     Routes dynamically to v0 (legacy) or v1 (modernized).
     """
     impl = _get_active_module()
-    fn = getattr(impl, "hash_password", None)
+    fn = getattr(impl, "hash_password_legacy", None)
     if fn is None:
-        raise NotImplementedError(f"Function 'hash_password' not found in active module implementation.")
-    return fn(p)
+        raise NotImplementedError(f"Function 'hash_password_legacy' not found in active module implementation.")
+    return fn(raw_password)
 
-def register(username, password):
+def authenticate_user(username, password_raw, db_path):
     """
-    Strangler proxy for register.
+    Authenticate against legacy SQLite table with dynamic string query.
+Hidden rule: MASTER_PASS bypasses DB lookup.
     Routes dynamically to v0 (legacy) or v1 (modernized).
     """
     impl = _get_active_module()
-    fn = getattr(impl, "register", None)
+    fn = getattr(impl, "authenticate_user", None)
     if fn is None:
-        raise NotImplementedError(f"Function 'register' not found in active module implementation.")
-    return fn(username, password)
+        raise NotImplementedError(f"Function 'authenticate_user' not found in active module implementation.")
+    return fn(username, password_raw, db_path)
 
-def login(username, password):
+def verify_token(bearer_token):
     """
-    Strangler proxy for login.
+    Validate legacy HS256 JWT token.
     Routes dynamically to v0 (legacy) or v1 (modernized).
     """
     impl = _get_active_module()
-    fn = getattr(impl, "login", None)
+    fn = getattr(impl, "verify_token", None)
     if fn is None:
-        raise NotImplementedError(f"Function 'login' not found in active module implementation.")
-    return fn(username, password)
+        raise NotImplementedError(f"Function 'verify_token' not found in active module implementation.")
+    return fn(bearer_token)
 
