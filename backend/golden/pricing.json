@@ -13,8 +13,8 @@
       "note": "Accounts from 2018-2020 must receive 25% discount"
     },
     "success": false,
-    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp06zlv6d3.pricing'",
-    "duration_ms": 170
+    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp_jk5odtg.pricing'",
+    "duration_ms": 168
   },
   {
     "case": {
@@ -30,8 +30,8 @@
       "note": "New accounts without loyalty points receive 0% discount"
     },
     "success": false,
-    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp06zlv6d3.pricing'",
-    "duration_ms": 92
+    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp_jk5odtg.pricing'",
+    "duration_ms": 120
   },
   {
     "case": {
@@ -47,8 +47,8 @@
       "note": "Orders < 100 units receive 0% bulk discount"
     },
     "success": false,
-    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp06zlv6d3.pricing'",
-    "duration_ms": 91
+    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp_jk5odtg.pricing'",
+    "duration_ms": 150
   },
   {
     "case": {
@@ -64,8 +64,8 @@
       "note": "Exact boundary condition for 5% bulk discount"
     },
     "success": false,
-    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp06zlv6d3.pricing'",
-    "duration_ms": 132
+    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp_jk5odtg.pricing'",
+    "duration_ms": 108
   },
   {
     "case": {
@@ -81,8 +81,8 @@
       "note": "Orders >= 500 units mandate manager approval flag"
     },
     "success": false,
-    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp06zlv6d3.pricing'",
-    "duration_ms": 93
+    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp_jk5odtg.pricing'",
+    "duration_ms": 102
   },
   {
     "case": {
@@ -97,7 +97,7 @@
       "note": "Base promotional code discount verification"
     },
     "success": false,
-    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp06zlv6d3.pricing'",
-    "duration_ms": 93
+    "expected_output": "Exception: ModuleNotFoundError - No module named 'tmp_jk5odtg.pricing'",
+    "duration_ms": 102
   }
 ]
