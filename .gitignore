@@ -48,3 +48,7 @@ yarn-error.log*
 backend/cache/llm/
 backend/cache/project_*.json
 backend/projects/
+
+backend/cache/llm/
+backend/cache/project_*.json
+backend/projects/
