@@ -58,26 +58,14 @@ def _get_active_module():
 # ==============================================================================
 # Public API Facade (100% Contract Preserved)
 # ==============================================================================
-def calculate_monthly_billing_cycle(customer_id, cycle_date, dry_run, db_path):
+def checkout(customer_name, city, items):
     """
-    Calculate full monthly billing cycle for customer.
-High complexity branching logic and hidden pricing rules.
+    Strangler proxy for checkout.
     Routes dynamically to v0 (legacy) or v1 (modernized).
     """
     impl = _get_active_module()
-    fn = getattr(impl, "calculate_monthly_billing_cycle", None)
+    fn = getattr(impl, "checkout", None)
     if fn is None:
-        raise NotImplementedError(f"Function 'calculate_monthly_billing_cycle' not found in active module implementation.")
-    return fn(customer_id, cycle_date, dry_run, db_path)
-
-def calculate_late_fee(invoice_amount, days_overdue):
-    """
-    Business rule: Late fee of 2% after 30 days overdue.
-    Routes dynamically to v0 (legacy) or v1 (modernized).
-    """
-    impl = _get_active_module()
-    fn = getattr(impl, "calculate_late_fee", None)
-    if fn is None:
-        raise NotImplementedError(f"Function 'calculate_late_fee' not found in active module implementation.")
-    return fn(invoice_amount, days_overdue)
+        raise NotImplementedError(f"Function 'checkout' not found in active module implementation.")
+    return fn(customer_name, city, items)
 
