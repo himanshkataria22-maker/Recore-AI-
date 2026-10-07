@@ -29,32 +29,59 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Light mode overrides for main container */
+/* Light mode text color overrides */
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-100 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-300 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-500 {
+  color: #78858f !important;
+}
+
+html.light .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+/* Light mode background color overrides */
 html.light .bg-slate-950 {
   background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
 }
 
 html.light .bg-slate-900 {
-  background-color: #f8fafc !important;
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
 }
 
 html.light .bg-slate-800 {
   background-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
 }
 
-html.light .text-slate-100,
-html.light .text-slate-200,
-html.light .text-slate-300 {
-  color: #1e293b !important;
+html.light .bg-slate-700 {
+  background-color: #cbd5e1 !important;
+  border-color: #a1aac4 !important;
 }
 
-html.light .text-slate-400,
-html.light .text-slate-500 {
-  color: #64748b !important;
-}
-
-html.light .text-white {
-  color: #0f172a !important;
+/* Light mode border color overrides */
+html.light .border-slate-900 {
+  border-color: #cbd5e1 !important;
 }
 
 html.light .border-slate-800 {
@@ -65,10 +92,8 @@ html.light .border-slate-700 {
   border-color: #cbd5e1 !important;
 }
 
-/* Card backgrounds */
-html.light [class*="bg-slate-9"] {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
+html.light .border-slate-600 {
+  border-color: #cbd5e1 !important;
 }
 
 /* Custom sleek scrollbars - Dark */

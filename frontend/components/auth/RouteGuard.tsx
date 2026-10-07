@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface RouteGuardProps {
@@ -9,25 +7,7 @@ interface RouteGuardProps {
 }
 
 export function RouteGuard({ children }: RouteGuardProps) {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  useEffect(() => {
-    // Skip checks while loading
-    if (loading) return;
-
-    // Allow access to login page
-    const isLoginPage = pathname === "/login";
-
-    if (!user && !isLoginPage) {
-      // User is not authenticated and trying to access protected route
-      router.replace("/login");
-    } else if (user && isLoginPage) {
-      // User is authenticated and on login page, redirect to dashboard
-      router.replace("/");
-    }
-  }, [user, loading, pathname, router]);
+  const { loading } = useAuth();
 
   // Show loading state while checking auth
   if (loading) {

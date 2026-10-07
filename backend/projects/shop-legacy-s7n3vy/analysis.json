@@ -1,0 +1,71 @@
+{
+  "projectId": "shop-legacy-s7n3vy",
+  "analyzedAt": "2026-10-06T17:00:55.765820Z",
+  "totalModules": 8,
+  "modules": [
+    {
+      "id": "auth",
+      "name": "auth.py",
+      "path": "shop_legacy/auth.py",
+      "riskScore": 53,
+      "riskLevel": "medium",
+      "issuesCount": 3
+    },
+    {
+      "id": "billing",
+      "name": "billing.py",
+      "path": "shop_legacy/billing.py",
+      "riskScore": 32,
+      "riskLevel": "medium",
+      "issuesCount": 1
+    },
+    {
+      "id": "config",
+      "name": "config.py",
+      "path": "shop_legacy/config.py",
+      "riskScore": 52,
+      "riskLevel": "medium",
+      "issuesCount": 2
+    },
+    {
+      "id": "db_utils",
+      "name": "db_utils.py",
+      "path": "shop_legacy/db_utils.py",
+      "riskScore": 37,
+      "riskLevel": "medium",
+      "issuesCount": 1
+    },
+    {
+      "id": "discounts",
+      "name": "discounts.py",
+      "path": "shop_legacy/discounts.py",
+      "riskScore": 32,
+      "riskLevel": "medium",
+      "issuesCount": 1
+    },
+    {
+      "id": "invoice",
+      "name": "invoice.py",
+      "path": "shop_legacy/invoice.py",
+      "riskScore": 32,
+      "riskLevel": "medium",
+      "issuesCount": 1
+    },
+    {
+      "id": "pricing",
+      "name": "pricing.py",
+      "path": "shop_legacy/pricing.py",
+      "riskScore": 32,
+      "riskLevel": "medium",
+      "issuesCount": 1
+    },
+    {
+      "id": "report",
+      "name": "report.py",
+      "path": "shop_legacy/report.py",
+      "riskScore": 47,
+      "riskLevel": "medium",
+      "issuesCount": 2
+    }
+  ]
+}

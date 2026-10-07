@@ -62,10 +62,10 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({
 
         {/* Center score readout */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-bold font-mono tracking-tight text-white">
+          <span className="text-3xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
             {score}
           </span>
-          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400">
+          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-600 dark:text-slate-400">
             / 100
           </span>
         </div>
@@ -73,7 +73,7 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({
 
       {showDetails && (
         <div className="mt-2 text-center">
-          <div className="text-xs text-slate-400 font-medium">{label}</div>
+          <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">{label}</div>
           <div
             className="text-xs font-bold uppercase tracking-wider mt-0.5"
             style={{ color: strokeColor }}

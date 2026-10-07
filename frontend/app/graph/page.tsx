@@ -151,7 +151,8 @@ export default function DependencyGraphPage() {
         const initialEdges: Edge[] = [];
         rawModules.forEach((mod) => {
           mod.dependsOn.forEach((depId) => {
-            const isCritical = mod.riskScore > 80 || rawModules.find(m => m.id === depId)?.riskScore > 80;
+            const depModule = rawModules.find(m => m.id === depId);
+            const isCritical = mod.riskScore > 80 || (depModule?.riskScore ?? 0) > 80;
             initialEdges.push({
               id: `edge-${mod.id}->${depId}`,
               source: mod.id,
@@ -274,7 +275,7 @@ export default function DependencyGraphPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-800">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 <GitFork className="w-6 h-6 text-cyan-400" />
                 AST Dependency & Blast Radius Engine
               </h1>
@@ -289,15 +290,15 @@ export default function DependencyGraphPage() {
 
           <div className="flex items-center gap-3">
             {/* Risk filter pills */}
-            <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl text-xs">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl text-xs">
               {["all", "critical", "high", "medium"].map((r) => (
                 <button
                   key={r}
                   onClick={() => setRiskFilter(r)}
                   className={`px-3 py-1 rounded-lg uppercase text-[10px] font-semibold transition-colors ${
                     riskFilter === r
-                      ? "bg-slate-800 text-cyan-300 border border-slate-700"
-                      : "text-slate-400 hover:text-white"
+                      ? "bg-slate-800 text-blue-700 dark:text-cyan-300 border border-slate-500 dark:border-slate-700"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   {r}
@@ -308,7 +309,7 @@ export default function DependencyGraphPage() {
             {selectedModuleId && (
               <button
                 onClick={resetBlastRadius}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-white transition-colors border border-slate-700"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Reset Selection
@@ -318,7 +319,7 @@ export default function DependencyGraphPage() {
         </div>
 
         {/* Legend Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-300">
+        <div className="flex flex-wrap items-center justify-between gap-4 p-3 rounded-xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300">
           <div className="flex items-center gap-4 flex-wrap">
             <span className="text-slate-500 font-medium text-[11px] uppercase tracking-wider">
               Legend:
@@ -379,17 +380,9 @@ export default function DependencyGraphPage() {
                   color="#64748b" 
                   gap={20} 
                   size={1.5}
-                  variant="dots"
                 />
                 <Controls 
                   className="!bg-slate-900 !border-slate-800"
-                  style={{
-                    button: {
-                      backgroundColor: '#1e293b',
-                      color: '#f8fafc',
-                      borderBottom: '1px solid #334155',
-                    }
-                  }}
                   showZoom={true}
                   showFitView={true}
                   showInteractive={true}
@@ -409,7 +402,7 @@ export default function DependencyGraphPage() {
             )}
 
             {/* Quick instruction overlay */}
-            <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 backdrop-blur-md text-[11px] font-mono text-slate-300 flex items-center gap-2 pointer-events-none">
+            <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 backdrop-blur-md text-[11px] font-mono text-slate-700 dark:text-slate-300 flex items-center gap-2 pointer-events-none">
               <Zap className="w-3.5 h-3.5 text-cyan-400" />
               <span>Click any node to evaluate blast radius</span>
             </div>
@@ -454,11 +447,11 @@ export default function DependencyGraphPage() {
                     <span className="text-xs text-rose-300 font-mono">/ 100</span>
                   </div>
                 </div>
-                <div className="text-right font-mono text-xs text-slate-300">
+                <div className="text-right font-mono text-xs text-slate-700 dark:text-slate-300">
                   <span className="block font-bold text-rose-300">
                     {blastRadiusInfo.affectedCount} Affected Modules
                   </span>
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-slate-600 dark:text-slate-400">
                     {blastRadiusInfo.totalAffectedLoc.toLocaleString()} LOC at Risk
                   </span>
                 </div>
@@ -469,12 +462,12 @@ export default function DependencyGraphPage() {
                 <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                   Target Module
                 </span>
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                <div className="p-3.5 rounded-xl bg-slate-200 dark:bg-slate-950 border border-slate-800 flex items-center justify-between">
                   <div>
-                    <span className="font-mono text-xs font-bold text-white">
+                    <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
                       {blastRadiusInfo.target.name}
                     </span>
-                    <p className="text-[10px] font-mono text-slate-500">
+                    <p className="text-[10px] font-mono text-slate-600 dark:text-slate-500">
                       {blastRadiusInfo.target.path}
                     </p>
                   </div>
@@ -501,16 +494,16 @@ export default function DependencyGraphPage() {
                     <Link
                       key={aff.id}
                       href={`/module/${aff.id}`}
-                      className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 hover:bg-slate-950 transition-colors flex items-center justify-between group text-xs"
+                      className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-300 dark:border-slate-800/80 hover:border-slate-700 hover:bg-slate-950 transition-colors flex items-center justify-between group text-xs"
                     >
                       <div className="flex items-center gap-2 truncate">
                         <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
-                        <span className="font-mono text-slate-200 group-hover:text-cyan-400 transition-colors truncate">
+                        <span className="font-mono text-slate-800 dark:text-slate-200 group-hover:text-cyan-400 transition-colors truncate">
                           {aff.name}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[10px] font-mono text-slate-500">
+                        <span className="text-[10px] font-mono text-slate-600 dark:text-slate-500">
                           {aff.loc} LOC
                         </span>
                         <RiskBadge level={aff.riskLevel} showIcon={false} className="!py-0 !px-1.5 text-[9px]" />
@@ -531,7 +524,7 @@ export default function DependencyGraphPage() {
                 </Link>
                 <Link
                   href={`/validate/${blastRadiusInfo.target.id}`}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                   Run Modernization Validation
@@ -544,3 +537,5 @@ export default function DependencyGraphPage() {
     </AppLayout>
   );
 }
+
+

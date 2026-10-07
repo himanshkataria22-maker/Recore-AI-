@@ -31,18 +31,25 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
         <Script id="theme-script" strategy="beforeInteractive">
           {`
             (function() {
-              const theme = localStorage.getItem('recore-theme') || 'dark';
-              document.documentElement.classList.add(theme);
+              try {
+                const theme = localStorage.getItem('recore-theme') || 'dark';
+                const htmlEl = document.documentElement;
+                htmlEl.classList.remove('light', 'dark');
+                htmlEl.classList.add(theme);
+              } catch (e) {
+                // localStorage might not be available
+              }
             })();
           `}
         </Script>
       </head>
-      <body className="min-h-full bg-slate-950 text-slate-100 flex flex-col">
+      <body className="min-h-full bg-slate-950 text-slate-100 flex flex-col" suppressHydrationWarning>
         <Providers>
           <RouteGuard>{children}</RouteGuard>
         </Providers>

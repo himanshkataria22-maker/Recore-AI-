@@ -15,20 +15,48 @@ import re
 
 from ..analyzer.engine import CodebaseAnalyzer
 from ..models.schema import Module
+import json
 
 router = APIRouter(tags=["upload"])
 
 # Configuration
 PROJECTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "projects")
+CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cache")
 MAX_ZIP_SIZE = 10 * 1024 * 1024  # 10 MB
 MAX_FILES = 200
 ALLOWED_EXTENSIONS = {".py"}
 IGNORED_DIRS = {"venv", "__pycache__", ".git", "node_modules", "tests", ".pytest_cache", "dist", "build", "egg-info"}
 
 os.makedirs(PROJECTS_DIR, exist_ok=True)
+os.makedirs(CACHE_DIR, exist_ok=True)
 
-# In-memory project status store (in production, use Redis or DB)
+# In-memory project status store (synced with cache file)
 _PROJECT_STATUS: Dict[str, Dict[str, Any]] = {}
+
+# Helper functions for status persistence
+def _get_status_file(project_id: str) -> str:
+    """Get path to project status cache file."""
+    return os.path.join(CACHE_DIR, f"project_{project_id}.json")
+
+def _load_status_from_cache(project_id: str) -> Optional[Dict[str, Any]]:
+    """Load project status from cache file."""
+    status_file = _get_status_file(project_id)
+    if os.path.exists(status_file):
+        try:
+            with open(status_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return None
+
+def _save_status_to_cache(project_id: str, status: Dict[str, Any]):
+    """Save project status to cache file."""
+    status_file = _get_status_file(project_id)
+    try:
+        with open(status_file, 'w', encoding='utf-8') as f:
+            json.dump(status, f, indent=2)
+    except Exception as e:
+        print(f"Failed to save status for {project_id}: {e}")
 
 
 def generate_project_id(name: str) -> str:
@@ -112,20 +140,23 @@ def extract_zip_safely(
 def analyze_project_background(project_id: str, source_path: str):
     """Background task to analyze a project."""
     try:
-        _PROJECT_STATUS[project_id]["status"] = "analyzing"
-        _PROJECT_STATUS[project_id]["progress"] = 20
+        status = _PROJECT_STATUS.get(project_id, {})
+        status["status"] = "analyzing"
+        status["progress"] = 20
+        _PROJECT_STATUS[project_id] = status
+        _save_status_to_cache(project_id, status)
         
         # Run analyzer
         analyzer = CodebaseAnalyzer(source_path)
         modules = analyzer.analyze(force_refresh=True)
         
-        _PROJECT_STATUS[project_id]["progress"] = 80
+        status["progress"] = 80
+        _save_status_to_cache(project_id, status)
         
         # Save analysis results
         project_dir = Path(source_path).parent
         analysis_file = project_dir / "analysis.json"
         
-        import json
         analysis_data = {
             "projectId": project_id,
             "analyzedAt": datetime.utcnow().isoformat() + "Z",
@@ -146,15 +177,21 @@ def analyze_project_background(project_id: str, source_path: str):
         with open(analysis_file, 'w', encoding='utf-8') as f:
             json.dump(analysis_data, f, indent=2)
         
-        _PROJECT_STATUS[project_id]["status"] = "done"
-        _PROJECT_STATUS[project_id]["progress"] = 100
-        _PROJECT_STATUS[project_id]["moduleCount"] = len(modules)
-        _PROJECT_STATUS[project_id]["completedAt"] = datetime.utcnow().isoformat() + "Z"
+        status["status"] = "done"
+        status["progress"] = 100
+        status["moduleCount"] = len(modules)
+        status["completedAt"] = datetime.utcnow().isoformat() + "Z"
+        status["error"] = None
+        _PROJECT_STATUS[project_id] = status
+        _save_status_to_cache(project_id, status)
         
     except Exception as e:
-        _PROJECT_STATUS[project_id]["status"] = "failed"
-        _PROJECT_STATUS[project_id]["error"] = str(e)
-        _PROJECT_STATUS[project_id]["progress"] = 0
+        status = _PROJECT_STATUS.get(project_id, {})
+        status["status"] = "failed"
+        status["error"] = str(e)
+        status["progress"] = 0
+        _PROJECT_STATUS[project_id] = status
+        _save_status_to_cache(project_id, status)
 
 
 @router.post("/projects/upload")
@@ -235,6 +272,9 @@ async def upload_project(
             "moduleCount": 0
         }
         
+        # Save to cache immediately
+        _save_status_to_cache(project_id, _PROJECT_STATUS[project_id])
+        
         # Queue background analysis
         background_tasks.add_task(analyze_project_background, project_id, str(src_dir))
         
@@ -272,16 +312,46 @@ def get_project_status(project_id: str):
     
     Progress: 0-100 percentage
     """
-    if project_id not in _PROJECT_STATUS:
-        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
+    # First check in-memory status
+    if project_id in _PROJECT_STATUS:
+        return _PROJECT_STATUS[project_id]
     
-    return _PROJECT_STATUS[project_id]
+    # Check cache file (for status persisted from previous sessions)
+    cached_status = _load_status_from_cache(project_id)
+    if cached_status:
+        # Restore to memory
+        _PROJECT_STATUS[project_id] = cached_status
+        return cached_status
+    
+    raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
 
 
 @router.get("/projects")
 def list_projects():
     """List all uploaded projects with their current status."""
+    # Load any cached projects not currently in memory
+    cache_dir = Path(CACHE_DIR)
+    if cache_dir.exists():
+        for cache_file in cache_dir.glob("project_*.json"):
+            try:
+                project_id = cache_file.stem.replace("project_", "")
+                if project_id not in _PROJECT_STATUS:
+                    with open(cache_file, 'r', encoding='utf-8') as f:
+                        _PROJECT_STATUS[project_id] = json.load(f)
+            except Exception:
+                pass
+    
     return {
         "projects": list(_PROJECT_STATUS.values()),
         "total": len(_PROJECT_STATUS)
+    }
+
+
+@router.get("/health/status")
+def health_status():
+    """Health check for upload service."""
+    return {
+        "service": "upload",
+        "status": "healthy",
+        "projects_cached": len(_PROJECT_STATUS)
     }

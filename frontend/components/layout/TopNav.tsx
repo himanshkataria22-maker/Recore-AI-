@@ -24,7 +24,7 @@ export const TopNav: React.FC<TopNavProps> = ({ onSearchChange }) => {
 
   return (
     <>
-      <header className="h-16 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-20">
+      <header className="h-16 border-b border-slate-300 dark:border-slate-800/80 bg-white dark:bg-slate-950/80 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-20">
         {/* Left Section */}
         <div className="flex items-center gap-4">
           {/* Removed project/branch indicator */}
@@ -33,13 +33,13 @@ export const TopNav: React.FC<TopNavProps> = ({ onSearchChange }) => {
         {/* Center Search Input */}
         <div className="hidden lg:flex items-center max-w-md w-full mx-4">
           <div className="relative w-full">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-2.5" />
+            <Search className="w-4 h-4 text-slate-500 dark:text-slate-500 absolute left-3.5 top-2.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={handleSearch}
               placeholder="Search modules, vulnerabilities, business rules (e.g. 'auth.py', 'sql_injection')..."
-              className="w-full bg-slate-900/80 border border-slate-800 rounded-xl py-2 pl-9 pr-4 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/80 transition-colors"
+              className="w-full bg-slate-100 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-800 rounded-xl py-2 pl-9 pr-4 text-xs font-mono text-slate-900 dark:text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500/80 transition-colors"
             />
           </div>
         </div>
@@ -49,7 +49,7 @@ export const TopNav: React.FC<TopNavProps> = ({ onSearchChange }) => {
           {/* Theme Toggle */}
           <ThemeToggle />
 
-          <div className="h-4 w-px bg-slate-800 dark:bg-slate-800 light:bg-slate-300" />
+          <div className="h-4 w-px bg-slate-300 dark:bg-slate-800" />
 
           <button
             onClick={() => setIsModalOpen(true)}
@@ -59,7 +59,7 @@ export const TopNav: React.FC<TopNavProps> = ({ onSearchChange }) => {
             <span>New Analysis</span>
           </button>
 
-          <div className="h-4 w-px bg-slate-800 dark:bg-slate-800 light:bg-slate-300" />
+          <div className="h-4 w-px bg-slate-300 dark:bg-slate-800" />
 
           {/* User Menu */}
           <UserMenu />

@@ -58,47 +58,25 @@ def _get_active_module():
 # ==============================================================================
 # Public API Facade (100% Contract Preserved)
 # ==============================================================================
-def calculate_discount(amount, percent):
+def shipping(subtotal):
     """
-    Strangler proxy for calculate_discount.
+    Strangler proxy for shipping.
     Routes dynamically to v0 (legacy) or v1 (modernized).
     """
     impl = _get_active_module()
-    fn = getattr(impl, "calculate_discount", None)
+    fn = getattr(impl, "shipping", None)
     if fn is None:
-        raise NotImplementedError(f"Function 'calculate_discount' not found in active module implementation.")
-    return fn(amount, percent)
+        raise NotImplementedError(f"Function 'shipping' not found in active module implementation.")
+    return fn(subtotal)
 
-def bulk_price(unit_price, qty):
+def final_price(subtotal):
     """
-    Strangler proxy for bulk_price.
+    Strangler proxy for final_price.
     Routes dynamically to v0 (legacy) or v1 (modernized).
     """
     impl = _get_active_module()
-    fn = getattr(impl, "bulk_price", None)
+    fn = getattr(impl, "final_price", None)
     if fn is None:
-        raise NotImplementedError(f"Function 'bulk_price' not found in active module implementation.")
-    return fn(unit_price, qty)
-
-def late_fee(amount, days_overdue):
-    """
-    Strangler proxy for late_fee.
-    Routes dynamically to v0 (legacy) or v1 (modernized).
-    """
-    impl = _get_active_module()
-    fn = getattr(impl, "late_fee", None)
-    if fn is None:
-        raise NotImplementedError(f"Function 'late_fee' not found in active module implementation.")
-    return fn(amount, days_overdue)
-
-def approval_level(amount):
-    """
-    Strangler proxy for approval_level.
-    Routes dynamically to v0 (legacy) or v1 (modernized).
-    """
-    impl = _get_active_module()
-    fn = getattr(impl, "approval_level", None)
-    if fn is None:
-        raise NotImplementedError(f"Function 'approval_level' not found in active module implementation.")
-    return fn(amount)
+        raise NotImplementedError(f"Function 'final_price' not found in active module implementation.")
+    return fn(subtotal)
 

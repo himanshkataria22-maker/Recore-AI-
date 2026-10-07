@@ -63,13 +63,13 @@ export default function ModernizationPlannerPage() {
     return (
       <AppLayout>
         <div className="space-y-6 animate-pulse">
-          <div className="h-8 w-64 bg-slate-800 rounded" />
+          <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-28 bg-slate-900 rounded-2xl border border-slate-800" />
+              <div key={i} className="h-28 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-300 dark:border-slate-800" />
             ))}
           </div>
-          <div className="h-80 bg-slate-900 rounded-2xl border border-slate-800" />
+          <div className="h-80 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-300 dark:border-slate-800" />
         </div>
       </AppLayout>
     );
@@ -89,18 +89,18 @@ export default function ModernizationPlannerPage() {
     <AppLayout>
       <div className="space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-300 dark:border-slate-800">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                <CalendarCheck2 className="w-6 h-6 text-cyan-400" />
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white flex items-center gap-2">
+                <CalendarCheck2 className="w-6 h-6 text-blue-600 dark:text-cyan-400" />
                 Modernization Execution Planner
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-emerald-200 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-400 dark:border-emerald-500/20">
                 Optimized DAG Sequence
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
               AI-synthesized step-by-step roadmap ordering refactors to minimize blast radius and avoid broken dependency chains.
             </p>
           </div>
@@ -119,53 +119,53 @@ export default function ModernizationPlannerPage() {
 
         {/* Top Summary KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 flex items-center justify-between">
             <div>
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
                 Total Engineering Effort
               </span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-3xl font-extrabold font-mono text-white">
+                <span className="text-3xl font-extrabold font-mono text-slate-900 dark:text-white">
                   {plan.totalEffortDays}
                 </span>
-                <span className="text-xs text-slate-400 font-mono">dev-days</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">dev-days</span>
               </div>
             </div>
-            <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            <div className="p-3 rounded-xl bg-blue-200 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-400 border border-blue-400 dark:border-cyan-500/20">
               <Clock className="w-5 h-5" />
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 flex items-center justify-between">
             <div>
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
                 Projected Risk Reduction
               </span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-3xl font-extrabold font-mono text-emerald-400">
+                <span className="text-3xl font-extrabold font-mono text-emerald-700 dark:text-emerald-400">
                   -{plan.projectedRiskReduction}%
                 </span>
-                <span className="text-xs text-slate-400 font-mono">overall</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">overall</span>
               </div>
             </div>
-            <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <div className="p-3 rounded-xl bg-emerald-200 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-400 dark:border-emerald-500/20">
               <TrendingDown className="w-5 h-5" />
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 flex items-center justify-between">
             <div>
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
                 Planned Migrations
               </span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-3xl font-extrabold font-mono text-white">
+                <span className="text-3xl font-extrabold font-mono text-slate-900 dark:text-white">
                   {plan.order.length}
                 </span>
-                <span className="text-xs text-slate-400 font-mono">modules ordered</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">modules ordered</span>
               </div>
             </div>
-            <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <div className="p-3 rounded-xl bg-indigo-200 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-400 dark:border-indigo-500/20">
               <Layers className="w-5 h-5" />
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function ModernizationPlannerPage() {
         {/* FEATURE A: Explainable AI "Why Modernize This First?" Section */}
         {explanation && (
           <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950/30 to-slate-900 border border-indigo-500/30 shadow-2xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-800/80">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-300 dark:border-slate-800/80">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
                   <Compass className="w-5 h-5" />
@@ -206,79 +206,79 @@ export default function ModernizationPlannerPage() {
               </div>
             </div>
 
-            <p className="text-xs text-slate-200 font-sans leading-relaxed bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+            <p className="text-xs text-slate-800 dark:text-slate-200 font-sans leading-relaxed bg-slate-200/70 dark:bg-slate-950/70 p-3.5 rounded-xl border border-slate-300 dark:border-slate-800/80">
               {explanation.reason}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-1">
-              <div className="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
+              <div className="p-3 rounded-xl bg-slate-200/90 dark:bg-slate-950/90 border border-slate-800 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 font-mono">
                   1. Blocker Status
                 </span>
                 <p className="text-xs font-bold text-emerald-400 font-mono">
                   0 Prerequisite Blockers
                 </p>
-                <p className="text-[11px] text-slate-400">Leaf dependency; safely isolated.</p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">Leaf dependency; safely isolated.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
+              <div className="p-3 rounded-xl bg-slate-200/90 dark:bg-slate-950/90 border border-slate-800 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 font-mono">
                   2. Risk Reduction ROI
                 </span>
                 <p className="text-xs font-bold text-cyan-400 font-mono">
                   -{explanation.riskReduction}% Projected Drop
                 </p>
-                <p className="text-[11px] text-slate-400">Remediates critical security flaws.</p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">Remediates critical security flaws.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
+              <div className="p-3 rounded-xl bg-slate-200/90 dark:bg-slate-950/90 border border-slate-800 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 font-mono">
                   3. Blast Radius
                 </span>
                 <p className="text-xs font-bold text-purple-400 font-mono">
                   Score: {explanation.blastRadiusScore}/100
                 </p>
-                <p className="text-[11px] text-slate-400">Unblocks downstream billing callers.</p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">Unblocks downstream billing callers.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
+              <div className="p-3 rounded-xl bg-slate-200/90 dark:bg-slate-950/90 border border-slate-800 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 font-mono">
                   4. Parity Proof
                 </span>
                 <p className="text-xs font-bold text-amber-400 font-mono">
                   100% Golden Master
                 </p>
-                <p className="text-[11px] text-slate-400">Guarantees zero logic regression.</p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">Guarantees zero logic regression.</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Risk-vs-Value Quadrant Chart */}
-        <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+        <div className="p-6 rounded-2xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Target className="w-4 h-4 text-cyan-400" />
                 Modernization Priority Quadrant (Value vs Effort)
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 Top-left quadrant indicates high-impact quick wins; top-right indicates high-value core overhauls.
               </p>
             </div>
-            <span className="text-xs font-mono text-slate-500">Bubble Size = Risk Reduction</span>
+            <span className="text-xs font-mono text-slate-600 dark:text-slate-500">Bubble Size = Risk Reduction</span>
           </div>
 
-          <div className="h-72 w-full pt-4 relative bg-slate-950/60 rounded-xl border border-slate-800/80 p-4">
+          <div className="h-72 w-full pt-4 relative bg-slate-950/60 rounded-xl border border-slate-300 dark:border-slate-800/80 p-4">
             {/* Quadrant background guides */}
             <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none p-6 text-[10px] font-mono font-bold tracking-wider uppercase">
-              <div className="text-emerald-500/40 p-2 border-r border-b border-slate-800/60">
+              <div className="text-emerald-500/40 p-2 border-r border-b border-slate-300 dark:border-slate-800/60">
                 ★ Quick Wins (High Value / Low Effort)
               </div>
-              <div className="text-cyan-500/40 p-2 border-b border-slate-800/60 text-right">
+              <div className="text-cyan-500/40 p-2 border-b border-slate-300 dark:border-slate-800/60 text-right">
                 Strategic Overhaul (High Value / High Effort)
               </div>
-              <div className="text-slate-600/40 p-2 border-r border-slate-800/60 flex items-end">
+              <div className="text-slate-600/40 p-2 border-r border-slate-300 dark:border-slate-800/60 flex items-end">
                 Incremental (Low Value / Low Effort)
               </div>
               <div className="text-amber-500/30 p-2 flex items-end justify-end">
@@ -315,7 +315,7 @@ export default function ModernizationPlannerPage() {
                     return (
                       <div className="p-3 rounded-xl bg-slate-900 border border-slate-700 shadow-xl text-xs font-mono">
                         <p className="font-bold text-cyan-300 text-sm">{data.name}</p>
-                        <p className="text-slate-300 mt-1">Effort: {data.effort} dev-days</p>
+                        <p className="text-slate-700 dark:text-slate-300 mt-1">Effort: {data.effort} dev-days</p>
                         <p className="text-emerald-400">Business Value: {data.value}/100</p>
                         <p className="text-rose-400">Risk Reduction: {data.riskReduction}%</p>
                       </div>
@@ -338,10 +338,10 @@ export default function ModernizationPlannerPage() {
         {/* Ordered Modernization Timeline List */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-base font-bold text-white">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
               Prioritized Modernization Sequence
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Execute in this order to guarantee zero broken downstream contracts.
             </p>
           </div>
@@ -350,11 +350,11 @@ export default function ModernizationPlannerPage() {
             {plan.order.map((item, index) => (
               <div
                 key={item.moduleId}
-                className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-5 group"
+                className="p-5 rounded-2xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-300 dark:border-slate-800 hover:border-slate-700 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-5 group"
               >
                 {/* Left: Step number & module name */}
                 <div className="flex items-start gap-4 min-w-0">
-                  <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center font-mono font-extrabold text-sm text-cyan-400 shrink-0 group-hover:border-cyan-500/50 group-hover:scale-105 transition-all">
+                  <div className="w-10 h-10 rounded-2xl bg-slate-200 dark:bg-slate-950 border border-slate-800 flex items-center justify-center font-mono font-extrabold text-sm text-cyan-400 shrink-0 group-hover:border-cyan-500/50 group-hover:scale-105 transition-all">
                     0{index + 1}
                   </div>
 
@@ -366,11 +366,11 @@ export default function ModernizationPlannerPage() {
                       >
                         {item.moduleName}
                       </Link>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-600 dark:text-slate-400">
                         Priority {item.priorityScore}/100
                       </span>
                     </div>
-                    <p className="text-xs text-slate-300 mt-1 leading-relaxed max-w-2xl">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed max-w-2xl">
                       {item.reason}
                     </p>
 
@@ -395,7 +395,7 @@ export default function ModernizationPlannerPage() {
                 </div>
 
                 {/* Right: Metrics & CTA Button */}
-                <div className="flex items-center justify-between lg:justify-end gap-6 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-800/60 shrink-0">
+                <div className="flex items-center justify-between lg:justify-end gap-6 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-300 dark:border-slate-800/60 shrink-0">
                   <div className="flex items-center gap-5 text-xs font-mono">
                     <div>
                       <span className="text-slate-500 block text-[10px] uppercase">Effort</span>
@@ -411,7 +411,7 @@ export default function ModernizationPlannerPage() {
 
                   <Link
                     href={`/validate/${item.moduleId}`}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-cyan-500 text-slate-200 hover:text-slate-950 font-bold text-xs transition-all border border-slate-700 hover:border-cyan-400 shadow-sm"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-cyan-500 text-slate-800 dark:text-slate-200 hover:text-slate-950 font-bold text-xs transition-all border border-slate-700 hover:border-cyan-400 shadow-sm"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     Modernize Module
@@ -426,3 +426,4 @@ export default function ModernizationPlannerPage() {
     </AppLayout>
   );
 }
+

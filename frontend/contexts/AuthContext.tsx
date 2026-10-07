@@ -28,19 +28,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
-  // Initialize auth state on mount
+  // Initialize auth state on mount (only once)
   useEffect(() => {
     const currentUser = getCurrentUser();
     setUser(currentUser);
     setLoading(false);
+    setMounted(true);
   }, []);
 
-  // Handle redirects separately after auth state is set
+  // Handle redirects separately after component is mounted
   useEffect(() => {
-    if (loading) return;
+    if (!mounted || loading) return;
 
     const isLoginPage = pathname === "/login";
     
@@ -49,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else if (!user && !isLoginPage) {
       router.replace("/login");
     }
-  }, [user, loading, pathname, router]);
+  }, [user, loading, pathname, router, mounted]);
 
   const login = async (credentials: LoginCredentials) => {
     const response = await authLogin(credentials);

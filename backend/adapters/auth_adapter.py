@@ -58,7 +58,7 @@ def _get_active_module():
 # ==============================================================================
 # Public API Facade (100% Contract Preserved)
 # ==============================================================================
-def hash_password(pw):
+def hash_password(p):
     """
     Strangler proxy for hash_password.
     Routes dynamically to v0 (legacy) or v1 (modernized).
@@ -67,18 +67,18 @@ def hash_password(pw):
     fn = getattr(impl, "hash_password", None)
     if fn is None:
         raise NotImplementedError(f"Function 'hash_password' not found in active module implementation.")
-    return fn(pw)
+    return fn(p)
 
-def check_admin(pw):
+def register(username, password):
     """
-    Strangler proxy for check_admin.
+    Strangler proxy for register.
     Routes dynamically to v0 (legacy) or v1 (modernized).
     """
     impl = _get_active_module()
-    fn = getattr(impl, "check_admin", None)
+    fn = getattr(impl, "register", None)
     if fn is None:
-        raise NotImplementedError(f"Function 'check_admin' not found in active module implementation.")
-    return fn(pw)
+        raise NotImplementedError(f"Function 'register' not found in active module implementation.")
+    return fn(username, password)
 
 def login(username, password):
     """

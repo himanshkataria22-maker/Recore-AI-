@@ -57,7 +57,7 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 border-r border-slate-800/80 bg-slate-950/95 flex flex-col justify-between shrink-0 h-screen sticky top-0 select-none z-30">
+    <aside className="w-64 border-r border-slate-300 dark:border-slate-800/80 bg-white dark:bg-slate-950/95 flex flex-col justify-between shrink-0 h-screen sticky top-0 select-none z-30">
       <div className="p-4 flex flex-col gap-6">
         {/* Brand Header */}
         <Link href="/" className="flex items-center gap-3 px-2 group">
@@ -70,20 +70,20 @@ export const Sidebar: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-base tracking-tight text-white group-hover:text-cyan-400 transition-colors">
+              <span className="font-bold text-base tracking-tight text-white dark:text-white group-hover:text-cyan-700 dark:group-hover:text-cyan-400 transition-colors">
                 ReCore
               </span>
               <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold">
                 AI
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">Legacy Modernization</p>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Legacy Modernization</p>
           </div>
         </Link>
 
         {/* Main Navigation */}
         <nav className="space-y-1">
-          <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500">
             Platform Engine
           </span>
           <div className="mt-2 space-y-1">
@@ -102,16 +102,16 @@ export const Sidebar: React.FC = () => {
                   href={item.href}
                   className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group ${
                     isActive
-                      ? "bg-slate-800 text-white shadow-sm border border-slate-700/80 font-semibold"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                      ? "bg-blue-200 dark:bg-slate-800 text-slate-950 dark:text-white shadow-sm border border-blue-400 dark:border-slate-700/80 font-semibold"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-900"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <Icon
                       className={`w-4 h-4 transition-colors ${
                         isActive
-                          ? "text-cyan-400"
-                          : "text-slate-400 group-hover:text-slate-200"
+                          ? "text-blue-600 dark:text-cyan-400"
+                          : "text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200"
                       }`}
                     />
                     <span>{item.name}</span>
@@ -120,8 +120,8 @@ export const Sidebar: React.FC = () => {
                     <span
                       className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
                         item.highlight
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold"
-                          : "bg-slate-900 text-slate-400 border border-slate-800"
+                          ? "bg-emerald-200 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-400 dark:border-emerald-500/20 font-bold"
+                          : "bg-slate-200 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-400 dark:border-slate-800"
                       }`}
                     >
                       {item.badge}
@@ -136,10 +136,10 @@ export const Sidebar: React.FC = () => {
         {/* Quick Module Inspector */}
         <div className="space-y-2">
           <div className="flex items-center justify-between px-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500">
               High-Risk Modules
             </span>
-            <span className="text-[10px] text-slate-500 font-mono">12 Total</span>
+            <span className="text-[10px] text-slate-600 dark:text-slate-500 font-mono">12 Total</span>
           </div>
           <div className="space-y-0.5">
             {quickModules.map((m) => {
@@ -150,12 +150,12 @@ export const Sidebar: React.FC = () => {
                   href={`/module/${m.id}`}
                   className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-mono transition-colors group ${
                     isModuleActive
-                      ? "bg-cyan-950/40 text-cyan-300 border border-cyan-500/30"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                      ? "bg-blue-200 dark:bg-cyan-950/40 text-blue-700 dark:text-cyan-300 border border-blue-400 dark:border-cyan-500/30"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-900/60"
                   }`}
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <Code2 className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 shrink-0" />
+                    <Code2 className="w-3.5 h-3.5 text-slate-600 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-cyan-400 shrink-0" />
                     <span className="truncate">{m.name}</span>
                   </div>
                   <span
@@ -171,10 +171,10 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer Info Card */}
-      <div className="p-4 border-t border-slate-800/80 bg-slate-950/80">
-        <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+      <div className="p-4 border-t border-slate-300 dark:border-slate-800/80 bg-slate-100 dark:bg-slate-950/80">
+        <div className="p-3 rounded-xl bg-slate-200 dark:bg-slate-900/80 border border-slate-400 dark:border-slate-800 text-xs">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
               Environment
             </span>
             <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400">
@@ -182,12 +182,12 @@ export const Sidebar: React.FC = () => {
               Mock Active
             </span>
           </div>
-          <p className="text-[11px] text-slate-300 font-mono truncate">
+          <p className="text-[11px] text-slate-700 dark:text-slate-300 font-mono truncate">
             NEXT_PUBLIC_USE_MOCK=true
           </p>
-          <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
+          <div className="mt-2 pt-2 border-t border-slate-400 dark:border-slate-800/60 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
             <span>FastAPI Bridge</span>
-            <span className="text-cyan-400 hover:underline cursor-pointer">Config</span>
+            <span className="text-blue-600 dark:text-cyan-400 hover:underline cursor-pointer">Config</span>
           </div>
         </div>
       </div>
