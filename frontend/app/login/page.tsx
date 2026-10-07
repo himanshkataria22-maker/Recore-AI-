@@ -30,52 +30,51 @@ export default function LoginPage() {
 
   const handleLoginSuccess = () => {
     setLoginSuccess(true);
-    setTimeout(() => setLoginSuccess(false), 1000);
+    setTimeout(() => setLoginSuccess(false), 1200);
   };
 
   const handleLoginFailed = () => {
     setLoginFailed(true);
-    setTimeout(() => setLoginFailed(false), 500);
+    setTimeout(() => setLoginFailed(false), 600);
   };
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative bg-white dark:bg-slate-950">
-      {/* Theme Toggle - Top Right Corner */}
+    <div className="min-h-screen w-full relative bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans">
+      {/* Theme Toggle - Fixed Top Right (never overlaps title) */}
       <div className="fixed top-6 right-6 z-50">
         <ThemeToggle />
       </div>
 
-      {/* Desktop & Tablet Layout (>= 1024px) */}
-      <div className="hidden lg:flex h-screen">
-        {/* Left Half - Robot Scene */}
-        <div className="relative w-1/2 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
-          {/* Animated Background Grid */}
+      {/* Main Split Layout Container */}
+      <div className="flex-1 flex flex-col lg:flex-row min-h-screen">
+        {/* Left Half - Robot Illustration Scene (lg screens >= 1024px) */}
+        <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/70 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex-col items-center justify-center p-8 overflow-hidden min-h-screen sticky top-0 h-screen select-none border-r border-slate-200/80 dark:border-slate-800/80">
+          {/* Background Grid & Particles */}
           {!prefersReducedMotion && (
             <>
-              <div className="absolute inset-0 bg-grid-pattern opacity-40 dark:opacity-10"></div>
-              
-              {/* Floating Code Particles */}
+              <div className="absolute inset-0 bg-grid-pattern opacity-40 dark:opacity-10 pointer-events-none" />
+
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(12)].map((_, i) => (
+                {[...Array(10)].map((_, i) => (
                   <div
                     key={i}
-                    className="absolute text-3xl text-blue-300/40 dark:text-blue-400/20 animate-float-particle"
+                    className="absolute text-2xl font-mono text-blue-400/30 dark:text-blue-400/20 animate-float-particle"
                     style={{
-                      left: `${Math.random() * 100}%`,
-                      top: `${100 + Math.random() * 20}%`,
-                      animationDelay: `${i * 1.5}s`,
-                      animationDuration: `${15 + Math.random() * 5}s`,
+                      left: `${10 + (i * 9)}%`,
+                      top: `${90 + (i * 2)}%`,
+                      animationDelay: `${i * 1.4}s`,
+                      animationDuration: `${14 + (i % 3) * 3}s`,
                     }}
                   >
-                    {["{", "}", "<", "/>", ";", "=>"][Math.floor(Math.random() * 6)]}
+                    {["{", "}", "<", "/>", ";", "=>", "AST"][i % 7]}
                   </div>
                 ))}
               </div>
             </>
           )}
 
-          {/* Robot Mascot */}
-          <div className="relative z-10 h-full">
+          {/* Interactive Robot Mascot */}
+          <div className="relative z-10 w-full max-w-lg flex items-center justify-center">
             <RobotMascot
               onEmailFocus={emailFocused}
               onPasswordFocus={passwordFocused}
@@ -86,9 +85,22 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right Half - Form */}
-        <div className="w-1/2 flex items-center justify-center bg-white dark:bg-slate-950 overflow-y-auto">
-          <div className="w-full py-12">
+        {/* Right Half - Auth Form (Vertically centered, unclipped, scrollable if needed) */}
+        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-12 bg-white dark:bg-slate-950 min-h-screen overflow-y-auto">
+          {/* Mobile Mascot Header (< 1024px) */}
+          <div className="lg:hidden mb-6 flex flex-col items-center justify-center w-full">
+            <div className="scale-75 origin-center -mb-6">
+              <RobotMascot
+                onEmailFocus={emailFocused}
+                onPasswordFocus={passwordFocused}
+                passwordVisible={passwordVisible}
+                loginSuccess={loginSuccess}
+                loginFailed={loginFailed}
+              />
+            </div>
+          </div>
+
+          <div className="w-full max-w-md my-auto">
             <AuthCard
               onEmailFocus={setEmailFocused}
               onPasswordFocus={setPasswordFocused}
@@ -100,74 +112,19 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Mobile & Small Tablet Layout (< 1024px) */}
-      <div className="lg:hidden min-h-screen flex flex-col">
-        {/* Top - Robot Header (smaller, about 220px) */}
-        <div className="relative h-[220px] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
-          {/* Animated Background (reduced for mobile) */}
-          {!prefersReducedMotion && (
-            <>
-              <div className="absolute inset-0 bg-grid-pattern opacity-40 dark:opacity-10"></div>
-              
-              {/* Fewer particles on mobile for performance */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute text-2xl text-blue-300/40 dark:text-blue-400/20 animate-float-particle"
-                    style={{
-                      left: `${Math.random() * 100}%`,
-                      top: `${100 + Math.random() * 20}%`,
-                      animationDelay: `${i * 2}s`,
-                      animationDuration: `${15 + Math.random() * 5}s`,
-                    }}
-                  >
-                    {["{", "}", "<", "/>"][Math.floor(Math.random() * 4)]}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Smaller Robot for Mobile */}
-          <div className="relative z-10 h-full scale-50 origin-center">
-            <RobotMascot
-              onEmailFocus={emailFocused}
-              onPasswordFocus={passwordFocused}
-              passwordVisible={passwordVisible}
-              loginSuccess={loginSuccess}
-              loginFailed={loginFailed}
-            />
-          </div>
-        </div>
-
-        {/* Bottom - Form */}
-        <div className="flex-1 bg-white dark:bg-slate-950 overflow-y-auto">
-          <div className="py-8">
-            <AuthCard
-              onEmailFocus={setEmailFocused}
-              onPasswordFocus={setPasswordFocused}
-              onPasswordVisibilityChange={setPasswordVisible}
-              onLoginSuccess={handleLoginSuccess}
-              onLoginFailed={handleLoginFailed}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Background Grid Pattern CSS */}
+      {/* Grid Pattern CSS */}
       <style jsx>{`
         .bg-grid-pattern {
           background-image: 
-            linear-gradient(rgba(59, 130, 246, 0.15) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59, 130, 246, 0.15) 1px, transparent 1px);
-          background-size: 50px 50px;
+            linear-gradient(rgba(59, 130, 246, 0.12) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59, 130, 246, 0.12) 1px, transparent 1px);
+          background-size: 40px 40px;
         }
 
         html.dark .bg-grid-pattern {
           background-image: 
-            linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+            linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
         }
       `}</style>
     </div>
