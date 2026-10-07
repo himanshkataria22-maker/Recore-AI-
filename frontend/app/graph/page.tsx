@@ -32,15 +32,20 @@ import {
   Zap,
 } from "lucide-react";
 
+import { useProject } from "@/contexts/ProjectContext";
+import { UploadAnalysisModal } from "@/components/ui/UploadAnalysisModal";
+
 const nodeTypes = {
   customModule: CustomModuleNode,
 };
 
 export default function DependencyGraphPage() {
+  const { hasProject, project } = useProject();
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedModuleId, setSelectedModuleId] = useState<string | null>("db_utils");
+  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   const [riskFilter, setRiskFilter] = useState<string>("all");
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -96,41 +101,44 @@ export default function DependencyGraphPage() {
   // Load modules & build graph
   useEffect(() => {
     async function loadGraph() {
-      try {
-        const rawModules = await getModules();
-        setModules(rawModules);
+      if (!hasProject || !project) {
+        setLoading(false);
+        setModules([]);
+        setNodes([]);
+        setEdges([]);
+        setSelectedModuleId(null);
+        return;
+      }
 
-        // Better hierarchical layout
+      try {
+        const rawModules = project.modules || (await getModules());
+        setModules(rawModules);
+        if (rawModules.length > 0 && !selectedModuleId) {
+          // Select highest risk module or first module as initial selection
+          const highestRisk = [...rawModules].sort((a, b) => b.riskScore - a.riskScore)[0];
+          setSelectedModuleId(highestRisk?.id || rawModules[0].id);
+        }
+
+        // Dynamic position generator based on grid layout
         const positions: Record<string, { x: number; y: number }> = {
-          // Top tier - foundational modules
           db_utils: { x: 300, y: 50 },
           audit_log: { x: 700, y: 50 },
-          
-          // Second tier - authentication & notifications  
           auth: { x: 150, y: 200 },
           notification: { x: 850, y: 200 },
-          
-          // Third tier - business logic modules (spread out)
           discounts: { x: 50, y: 350 },
           tax_calculator: { x: 280, y: 380 },
           payment_gateway: { x: 520, y: 350 },
           subscription: { x: 750, y: 380 },
-          
-          // Fourth tier - aggregation layer
           billing: { x: 400, y: 530 },
-          
-          // Fifth tier - output/reporting
           invoice: { x: 250, y: 680 },
           report: { x: 550, y: 680 },
-          
-          // Bottom tier - export services
           export_service: { x: 400, y: 820 },
         };
 
-        const initialNodes: Node[] = rawModules.map((m) => ({
+        const initialNodes: Node[] = rawModules.map((m, idx) => ({
           id: m.id,
           type: "customModule",
-          position: positions[m.id] || { x: 400, y: 400 },
+          position: positions[m.id] || { x: (idx % 3) * 300 + 100, y: Math.floor(idx / 3) * 200 + 100 },
           data: {
             label: m.name,
             path: m.path,
@@ -142,8 +150,8 @@ export default function DependencyGraphPage() {
             status: m.status,
             dependsOnCount: m.dependsOn.length,
             usedByCount: m.usedBy.length,
-            isBlastTarget: m.id === "db_utils",
-            isBlastAffected: m.id !== "db_utils",
+            isBlastTarget: false,
+            isBlastAffected: false,
             isDimmed: false,
           },
         }));
@@ -151,21 +159,21 @@ export default function DependencyGraphPage() {
         const initialEdges: Edge[] = [];
         rawModules.forEach((mod) => {
           mod.dependsOn.forEach((depId) => {
-            const depModule = rawModules.find(m => m.id === depId);
+            const depModule = rawModules.find((m) => m.id === depId);
             const isCritical = mod.riskScore > 80 || (depModule?.riskScore ?? 0) > 80;
             initialEdges.push({
               id: `edge-${mod.id}->${depId}`,
               source: mod.id,
               target: depId,
-              type: 'smoothstep',
+              type: "smoothstep",
               animated: isCritical,
               style: {
-                stroke: isCritical ? '#f87171' : '#475569',
+                stroke: isCritical ? "#f87171" : "#475569",
                 strokeWidth: isCritical ? 2.5 : 1.5,
               },
               markerEnd: {
                 type: MarkerType.ArrowClosed,
-                color: isCritical ? '#f87171' : '#64748b',
+                color: isCritical ? "#f87171" : "#64748b",
                 width: 12,
                 height: 12,
               },
@@ -175,14 +183,12 @@ export default function DependencyGraphPage() {
 
         setNodes(initialNodes);
         setEdges(initialEdges);
-      } catch (err) {
-        console.error("Failed to load graph", err);
       } finally {
         setLoading(false);
       }
     }
     loadGraph();
-  }, [setNodes, setEdges]);
+  }, [hasProject, project, setNodes, setEdges]);
 
   // Update node highlight states whenever selectedModuleId or blastRadius changes
   useEffect(() => {
@@ -352,17 +358,34 @@ export default function DependencyGraphPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* React Flow Canvas */}
           <div 
-            className={`transition-all ${blastRadiusInfo ? "lg:col-span-8" : "lg:col-span-12"} h-[650px] rounded-2xl border border-slate-700 overflow-hidden relative shadow-xl`}
+            className={`transition-all ${blastRadiusInfo ? "lg:col-span-8" : "lg:col-span-12"} h-[650px] rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-100/90 dark:bg-slate-900/90 overflow-hidden relative shadow-xl`}
             style={{
-              background: 'radial-gradient(circle at 1px 1px, #475569 1px, transparent 0)',
-              backgroundSize: '20px 20px',
-              backgroundColor: '#1e293b'
+              background: 'radial-gradient(circle at 1px 1px, rgba(148,163,184,0.3) 1px, transparent 0)',
+              backgroundSize: '20px 20px'
             }}
           >
             {loading ? (
-              <div className="h-full flex items-center justify-center text-slate-400 gap-2">
-                <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
+              <div className="h-full flex items-center justify-center text-slate-600 dark:text-slate-400 gap-2">
+                <RefreshCw className="w-5 h-5 animate-spin text-cyan-600 dark:text-cyan-400" />
                 <span>Synthesizing AST Dependency Nodes...</span>
+              </div>
+            ) : !hasProject ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
+                <div className="p-4 rounded-2xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">
+                  <GitFork className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">No Dependency Graph Available</h3>
+                  <p className="text-xs text-slate-500 max-w-sm mt-1">
+                    Upload a codebase archive to generate an interactive AST dependency graph and evaluate blast radius impact.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all"
+                >
+                  Upload Codebase (.zip)
+                </button>
               </div>
             ) : (
               <ReactFlow
@@ -382,7 +405,7 @@ export default function DependencyGraphPage() {
                   size={1.5}
                 />
                 <Controls 
-                  className="!bg-slate-900 !border-slate-800"
+                  className="!bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-800"
                   showZoom={true}
                   showFitView={true}
                   showInteractive={true}
@@ -395,60 +418,62 @@ export default function DependencyGraphPage() {
                     if (d?.isBlastAffected) return "#fb7185";
                     return "#334155";
                   }}
-                  className="!bg-slate-900 !border-slate-800 !rounded-xl"
-                  maskColor="rgba(2, 6, 23, 0.7)"
+                  className="!bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-800 !rounded-xl"
+                  maskColor="rgba(148, 163, 184, 0.3)"
                 />
               </ReactFlow>
             )}
 
             {/* Quick instruction overlay */}
-            <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 backdrop-blur-md text-[11px] font-mono text-slate-700 dark:text-slate-300 flex items-center gap-2 pointer-events-none">
-              <Zap className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Click any node to evaluate blast radius</span>
-            </div>
+            {hasProject && (
+              <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 backdrop-blur-md text-[11px] font-mono text-slate-700 dark:text-slate-300 flex items-center gap-2 pointer-events-none shadow-xs">
+                <Zap className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                <span>Click any node to evaluate blast radius</span>
+              </div>
+            )}
           </div>
 
           {/* Blast Radius Impact Side Panel */}
           {blastRadiusInfo && (
-            <div className="lg:col-span-4 rounded-2xl bg-slate-900/90 border border-rose-900/40 p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="lg:col-span-4 rounded-2xl bg-white/95 dark:bg-slate-900/90 border border-rose-300 dark:border-rose-900/40 p-6 shadow-2xl space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
               {/* Header */}
-              <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-800">
+              <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                  <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                     <Flame className="w-5 h-5 text-rose-500 animate-pulse" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white leading-tight">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
                       Blast Radius Analysis
                     </h3>
-                    <p className="text-xs font-mono text-rose-300 mt-0.5">
+                    <p className="text-xs font-mono text-rose-700 dark:text-rose-300 mt-0.5">
                       Changing <strong>{blastRadiusInfo.target.name}</strong>
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={resetBlastRadius}
-                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+                  className="text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* High-level Impact Score */}
-              <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-500/30 flex items-center justify-between">
+              <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-500/30 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-rose-300 tracking-wider">
+                  <span className="text-[10px] uppercase font-bold text-rose-800 dark:text-rose-300 tracking-wider">
                     Cumulative Impact Score
                   </span>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-3xl font-extrabold font-mono text-rose-400">
+                    <span className="text-3xl font-extrabold font-mono text-rose-600 dark:text-rose-400">
                       {blastRadiusInfo.impactScore}
                     </span>
-                    <span className="text-xs text-rose-300 font-mono">/ 100</span>
+                    <span className="text-xs text-rose-700 dark:text-rose-300 font-mono">/ 100</span>
                   </div>
                 </div>
                 <div className="text-right font-mono text-xs text-slate-700 dark:text-slate-300">
-                  <span className="block font-bold text-rose-300">
+                  <span className="block font-bold text-rose-800 dark:text-rose-300">
                     {blastRadiusInfo.affectedCount} Affected Modules
                   </span>
                   <span className="text-[11px] text-slate-600 dark:text-slate-400">
@@ -459,15 +484,15 @@ export default function DependencyGraphPage() {
 
               {/* Target Module Spec */}
               <div className="space-y-2">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Target Module
                 </span>
-                <div className="p-3.5 rounded-xl bg-slate-200 dark:bg-slate-950 border border-slate-800 flex items-center justify-between">
+                <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                   <div>
                     <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
                       {blastRadiusInfo.target.name}
                     </span>
-                    <p className="text-[10px] font-mono text-slate-600 dark:text-slate-500">
+                    <p className="text-[10px] font-mono text-slate-500 dark:text-slate-500">
                       {blastRadiusInfo.target.path}
                     </p>
                   </div>
@@ -481,7 +506,7 @@ export default function DependencyGraphPage() {
               {/* List of Affected Modules */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Downstream Cascade ({blastRadiusInfo.affectedCount})
                   </span>
                   <span className="text-[10px] text-slate-500 font-mono">
@@ -494,16 +519,16 @@ export default function DependencyGraphPage() {
                     <Link
                       key={aff.id}
                       href={`/module/${aff.id}`}
-                      className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-300 dark:border-slate-800/80 hover:border-slate-700 hover:bg-slate-950 transition-colors flex items-center justify-between group text-xs"
+                      className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-950 transition-colors flex items-center justify-between group text-xs"
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
-                        <span className="font-mono text-slate-800 dark:text-slate-200 group-hover:text-cyan-400 transition-colors truncate">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+                        <span className="font-mono text-slate-900 dark:text-slate-200 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors truncate">
                           {aff.name}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[10px] font-mono text-slate-600 dark:text-slate-500">
+                        <span className="text-[10px] font-mono text-slate-500 dark:text-slate-500">
                           {aff.loc} LOC
                         </span>
                         <RiskBadge level={aff.riskLevel} showIcon={false} className="!py-0 !px-1.5 text-[9px]" />
@@ -524,9 +549,9 @@ export default function DependencyGraphPage() {
                 </Link>
                 <Link
                   href={`/validate/${blastRadiusInfo.target.id}`}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition-colors"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   Run Modernization Validation
                 </Link>
               </div>
@@ -534,6 +559,10 @@ export default function DependencyGraphPage() {
           )}
         </div>
       </div>
+      <UploadAnalysisModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+      />
     </AppLayout>
   );
 }
