@@ -2,102 +2,74 @@
   {
     "case": {
       "id": "TC-01",
-      "name": "Grandfathered 2019 customer loyalty discount (25%)",
-      "function": "get_customer_discount_multiplier",
+      "name": "Enterprise VIP Platinum flat rate ($8,999)",
+      "function": "calculate_monthly_billing_cycle",
       "args": [
-        "CUST-001",
-        "GROWTH_TIER"
+        "CUST-002",
+        "2026-10-01",
+        true
       ],
       "kwargs": {},
-      "type": "regression",
-      "note": "Accounts from 2018-2020 must receive 25% discount"
+      "type": "invariant",
+      "note": "VIP Platinum customers receive $8,999 rate with no stacking"
     },
-    "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'get_customer_discount_multiplier'",
-    "duration_ms": 981
+    "success": true,
+    "expected_output": {
+      "status": "preview",
+      "customer_id": "CUST-002",
+      "subtotal": 8999.0,
+      "discount_rate": 0.0,
+      "tax": 0.0,
+      "total": 8999.0,
+      "dual_approval_required": false
+    },
+    "duration_ms": 348
   },
   {
     "case": {
       "id": "TC-02",
-      "name": "New 2025 customer without grandfathered rate (0%)",
-      "function": "get_customer_discount_multiplier",
+      "name": "Growth Tier customer preview billing",
+      "function": "calculate_monthly_billing_cycle",
       "args": [
-        "CUST-004",
-        "STARTER"
+        "CUST-001",
+        "2026-10-01",
+        true
       ],
       "kwargs": {},
       "type": "regression",
-      "note": "New accounts without loyalty points receive 0% discount"
+      "note": "Standard customer preview calculation"
     },
-    "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'get_customer_discount_multiplier'",
-    "duration_ms": 880
+    "success": true,
+    "expected_output": {
+      "status": "preview",
+      "customer_id": "CUST-001",
+      "subtotal": 324.35,
+      "discount_rate": 0.35,
+      "tax": 16.22,
+      "total": 340.57,
+      "dual_approval_required": false
+    },
+    "duration_ms": 236
   },
   {
     "case": {
       "id": "TC-03",
-      "name": "Standard bulk order below discount threshold (50 units)",
-      "function": "calculate_bulk_discount",
+      "name": "Late fee calculation (>30 days overdue)",
+      "function": "calculate_late_fee",
       "args": [
-        50,
-        20.0
-      ],
-      "kwargs": {},
-      "type": "regression",
-      "note": "Orders < 100 units receive 0% bulk discount"
-    },
-    "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'calculate_bulk_discount'",
-    "duration_ms": 819
-  },
-  {
-    "case": {
-      "id": "TC-04",
-      "name": "Bulk tier boundary (100 units, 5% discount)",
-      "function": "calculate_bulk_discount",
-      "args": [
-        100,
-        20.0
+        1000.0,
+        45
       ],
       "kwargs": {},
       "type": "edge_case",
-      "note": "Exact boundary condition for 5% bulk discount"
+      "note": "2% late fee penalty applied after 30 days"
     },
-    "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'calculate_bulk_discount'",
-    "duration_ms": 749
-  },
-  {
-    "case": {
-      "id": "TC-05",
-      "name": "High-volume bulk order with manager approval (500 units, 12% discount)",
-      "function": "calculate_bulk_discount",
-      "args": [
-        500,
-        20.0
-      ],
-      "kwargs": {},
-      "type": "invariant",
-      "note": "Orders >= 500 units mandate manager approval flag"
+    "success": true,
+    "expected_output": {
+      "days_overdue": 45,
+      "late_fee": 20.0,
+      "total_with_fee": 1020.0
     },
-    "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'calculate_bulk_discount'",
-    "duration_ms": 717
-  },
-  {
-    "case": {
-      "id": "TC-06",
-      "name": "Promo code coupon evaluation",
-      "function": "apply_recursive_promos",
-      "args": [
-        "WELCOME10"
-      ],
-      "kwargs": {},
-      "type": "regression",
-      "note": "Base promotional code discount verification"
-    },
-    "success": false,
-    "expected_output": "Exception: AttributeError - module 'tmp83mwnxqp.billing' has no attribute 'apply_recursive_promos'",
-    "duration_ms": 808
+    "duration_ms": 280
   }
 ]
