@@ -3,6 +3,7 @@
 import React from "react";
 import { ToastProvider } from "@/components/ui/ToastContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProjectProvider } from "@/contexts/ProjectContext";
 
 /**
  * Client-side providers wrapper for context providers that need "use client".
@@ -11,7 +12,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <ToastProvider>{children}</ToastProvider>
+      <ProjectProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </ProjectProvider>
     </AuthProvider>
   );
 }
