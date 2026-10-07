@@ -30,6 +30,7 @@
  */
 
 const STORAGE_KEY = "recore_user";
+const REMEMBER_KEY = "recore_remember_me";
 const DEMO_DELAY = 800; // Simulated network latency
 
 export interface User {
@@ -72,13 +73,12 @@ export function isValidPassword(password: string): boolean {
 
 /**
  * Mock login function - accepts any valid email format + 8+ char password
- * WARNING: This is a demo only. Never use this pattern in production.
  */
 export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, DEMO_DELAY));
 
-  const { email, password } = credentials;
+  const { email, password, rememberMe } = credentials;
 
   // Basic validation
   if (!email || !password) {
@@ -115,9 +115,17 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
     avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(capitalizedName)}&background=3b82f6&color=fff`,
   };
 
-  // Store user (NOT the password!)
+  // Store user based on rememberMe flag
   if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    if (rememberMe) {
+      localStorage.setItem(REMEMBER_KEY, "true");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(REMEMBER_KEY);
+      localStorage.removeItem(STORAGE_KEY);
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    }
   }
 
   return {
@@ -133,7 +141,7 @@ export async function signup(credentials: SignupCredentials): Promise<AuthRespon
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, DEMO_DELAY));
 
-  const { name, email, password, confirmPassword } = credentials;
+  const { name, email, password, confirmPassword, rememberMe } = credentials;
 
   // Validation
   if (!name || !email || !password || !confirmPassword) {
@@ -170,9 +178,17 @@ export async function signup(credentials: SignupCredentials): Promise<AuthRespon
     avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`,
   };
 
-  // Store user (NOT the password!)
+  // Store user based on rememberMe
   if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    if (rememberMe) {
+      localStorage.setItem(REMEMBER_KEY, "true");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(REMEMBER_KEY);
+      localStorage.removeItem(STORAGE_KEY);
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    }
   }
 
   return {
@@ -191,9 +207,8 @@ export async function loginAsDemo(): Promise<AuthResponse> {
     avatar: "https://ui-avatars.com/api/?name=Alex+Rivera&background=3b82f6&color=fff",
   };
 
-  // Store user
   if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
   }
 
   // Small delay for UX
@@ -206,7 +221,7 @@ export async function loginAsDemo(): Promise<AuthResponse> {
 }
 
 /**
- * Get the currently logged-in user from localStorage
+ * Get the currently logged-in user from storage
  */
 export function getCurrentUser(): User | null {
   if (typeof window === "undefined") {
@@ -214,9 +229,22 @@ export function getCurrentUser(): User | null {
   }
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return null;
-    return JSON.parse(stored) as User;
+    // 1. Check active session storage first
+    const sessionUser = sessionStorage.getItem(STORAGE_KEY);
+    if (sessionUser) {
+      return JSON.parse(sessionUser) as User;
+    }
+
+    // 2. Check local storage only if rememberMe was set
+    const isRemembered = localStorage.getItem(REMEMBER_KEY) === "true";
+    if (isRemembered) {
+      const localUser = localStorage.getItem(STORAGE_KEY);
+      if (localUser) {
+        return JSON.parse(localUser) as User;
+      }
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -228,6 +256,8 @@ export function getCurrentUser(): User | null {
 export function logout(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(REMEMBER_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
   }
 }
 
