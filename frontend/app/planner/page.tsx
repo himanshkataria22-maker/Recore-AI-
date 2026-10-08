@@ -34,6 +34,7 @@ import {
 
 import { useProject } from "@/contexts/ProjectContext";
 import { UploadAnalysisModal } from "@/components/ui/UploadAnalysisModal";
+import { getChartColors } from "@/lib/utils";
 
 export default function ModernizationPlannerPage() {
   const { hasProject, project } = useProject();
@@ -42,6 +43,22 @@ export default function ModernizationPlannerPage() {
   const [loading, setLoading] = useState(true);
   const [selectedPlanItem, setSelectedPlanItem] = useState<PlanItem | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [chartColors, setChartColors] = useState(getChartColors());
+
+  // Update chart colors when theme changes
+  useEffect(() => {
+    const updateColors = () => {
+      setChartColors(getChartColors());
+    };
+    
+    const observer = new MutationObserver(updateColors);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     async function loadPlan() {
@@ -342,7 +359,7 @@ export default function ModernizationPlannerPage() {
                   dataKey="effort"
                   name="Effort (Dev Days)"
                   unit="d"
-                  stroke="#64748b"
+                  stroke={chartColors.stroke.axis}
                   tick={{ fontSize: 11 }}
                   domain={[0, 5]}
                 />
@@ -351,7 +368,7 @@ export default function ModernizationPlannerPage() {
                   dataKey="value"
                   name="Business Value"
                   unit="pts"
-                  stroke="#64748b"
+                  stroke={chartColors.stroke.axis}
                   tick={{ fontSize: 11 }}
                   domain={[60, 100]}
                 />

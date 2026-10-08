@@ -213,7 +213,7 @@ export default function DependencyGraphPage() {
       }
     }
     loadGraph();
-  }, [hasProject, project, riskFilter, setNodes, setEdges]);
+  }, [hasProject, project, riskFilter, setNodes, setEdges, chartColors]);
 
   // Update node highlight states whenever selectedModuleId or blastRadius changes
   useEffect(() => {
@@ -264,7 +264,7 @@ export default function DependencyGraphPage() {
         };
       })
     );
-  }, [selectedModuleId, blastRadiusInfo, setNodes, setEdges]);
+  }, [selectedModuleId, blastRadiusInfo, setNodes, setEdges, chartColors]);
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -475,7 +475,7 @@ export default function DependencyGraphPage() {
                 maxZoom={1.5}
               >
                 <Background 
-                  color="#64748b" 
+                  color={chartColors.stroke.grid}
                   gap={20} 
                   size={1.5}
                 />
