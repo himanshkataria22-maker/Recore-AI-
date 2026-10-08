@@ -100,7 +100,7 @@ export const Sidebar: React.FC = () => {
                   href={item.href}
                   className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group ${
                     isActive
-                      ? "bg-blue-600 dark:bg-slate-800 text-white dark:text-cyan-300 shadow-sm border border-blue-700 dark:border-slate-700/80 font-semibold"
+                      ? "bg-blue-100 dark:bg-slate-800 text-blue-900 dark:text-cyan-300 shadow-sm border border-blue-300 dark:border-slate-700/80 font-semibold"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-900"
                   }`}
                 >
@@ -108,7 +108,7 @@ export const Sidebar: React.FC = () => {
                     <Icon
                       className={`w-4 h-4 transition-colors ${
                         isActive
-                          ? "text-white dark:text-cyan-400"
+                          ? "text-blue-900 dark:text-cyan-400"
                           : "text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200"
                       }`}
                     />
@@ -152,7 +152,7 @@ export const Sidebar: React.FC = () => {
                     href={`/module/${m.id}`}
                     className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-mono transition-colors group ${
                       isModuleActive
-                        ? "bg-blue-200 dark:bg-cyan-950/40 text-blue-700 dark:text-cyan-300 border border-blue-400 dark:border-cyan-500/30"
+                        ? "bg-blue-100 dark:bg-cyan-950/40 text-blue-900 dark:text-cyan-300 border border-blue-300 dark:border-cyan-500/30"
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-900/60"
                     }`}
                   >

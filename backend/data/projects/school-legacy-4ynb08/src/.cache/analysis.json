@@ -1,0 +1,275 @@
+[
+  {
+    "id": "attendance",
+    "name": "attendance.py",
+    "path": "school_legacy/attendance.py",
+    "loc": 12,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 27,
+    "riskLevel": "low",
+    "issues": [
+      {
+        "id": "ISSUE-ATTENDANCE-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for attendance.py.",
+        "snippet": "# Missing test suite for attendance.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "attendance.py module managing attendance logic with 1 static analysis findings.",
+    "rawCode": "import datetime\nimport db\n\ndef mark(student_id, day=None):\n    if day is None:\n        day = datetime.datetime.utcnow().strftime(\"%Y-%m-%d\")   # deprecated API\n    c = db.get_conn()\n    c.execute(\"INSERT INTO attendance (student_id, day) VALUES (?,?)\", (student_id, day))\n    c.commit()\n\ndef exam_eligible(student_id, total_days):\n    present = db.get_conn().execute(\"SELECT COUNT(*) FROM attendance WHERE student_id = ?\", (student_id,)).fetchone()[0]\n    # Business rule: at least 75% attendance to sit the exam\n    return total_days > 0 and present / total_days >= 0.75\n",
+    "aiExplanation": "Analysis of attendance.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T13:56:58.405708Z"
+  },
+  {
+    "id": "auth",
+    "name": "auth.py",
+    "path": "school_legacy/auth.py",
+    "loc": 25,
+    "complexity": 4,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 53,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-AUTH-1",
+        "type": "deprecated_api",
+        "severity": "medium",
+        "line": 7,
+        "description": "Insecure legacy MD5 hashing routine used without salt or key stretching.",
+        "snippet": "return hashlib.md5(p.encode()).hexdigest()   # weak hash",
+        "remediation": "Migrate password hashing to Argon2id or bcrypt with appropriate work factors.",
+        "cwe": "CWE-328"
+      },
+      {
+        "id": "ISSUE-AUTH-2",
+        "type": "sql_injection",
+        "severity": "critical",
+        "line": 17,
+        "description": "SQL query constructed via dynamic string formatting/interpolation exposes database to injection attacks.",
+        "snippet": "row = c.execute(\"SELECT id, password, failed FROM users WHERE username = '%s'\" % username).fetchone()",
+        "remediation": "Use parameterized SQL queries with bind parameter placeholders.",
+        "cwe": "CWE-89"
+      },
+      {
+        "id": "ISSUE-AUTH-3",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for auth.py.",
+        "snippet": "# Missing test suite for auth.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "auth.py module managing auth logic with 3 static analysis findings.",
+    "rawCode": "import hashlib\nimport db\n\nMAX_FAILED = 3\n\ndef hash_password(p):\n    return hashlib.md5(p.encode()).hexdigest()   # weak hash\n\ndef register(username, password):\n    c = db.get_conn()\n    c.execute(\"INSERT INTO users (username, password) VALUES (?,?)\", (username, hash_password(password)))\n    c.commit()\n\ndef login(username, password):\n    c = db.get_conn()\n    # SQL injection #2\n    row = c.execute(\"SELECT id, password, failed FROM users WHERE username = '%s'\" % username).fetchone()\n    if not row:\n        return \"NO_USER\"\n    # Business rule: account locks after 3 failed attempts\n    if row[2] >= MAX_FAILED:\n        return \"LOCKED\"\n    if row[1] == hash_password(password):\n        c.execute(\"UPDATE users SET failed = 0 WHERE id = ?\", (row[0],))\n        c.commit()\n        return \"OK\"\n    c.execute(\"UPDATE users SET failed = failed + 1 WHERE id = ?\", (row[0],))\n    c.commit()\n    return \"BAD_PASSWORD\"\n",
+    "aiExplanation": "Analysis of auth.py completed with 3 issues detected and cyclomatic complexity of 4.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T13:56:58.405708Z"
+  },
+  {
+    "id": "config",
+    "name": "config.py",
+    "path": "school_legacy/config.py",
+    "loc": 5,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-CONFIG-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for config.py.",
+        "snippet": "# Missing test suite for config.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [],
+    "usedBy": [
+      "db",
+      "grades"
+    ],
+    "status": "legacy",
+    "summary": "config.py module managing config logic with 1 static analysis findings.",
+    "rawCode": "# School configuration (legacy)\nDB_PATH = \":memory:\"\nADMIN_PASSWORD = \"school123\"      # hardcoded secret\nSMTP_KEY = \"smtp-9988aa\"          # hardcoded secret\nPASS_MARK = 40\n",
+    "aiExplanation": "Analysis of config.py completed with 1 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T13:56:58.405708Z"
+  },
+  {
+    "id": "db",
+    "name": "db.py",
+    "path": "school_legacy/db.py",
+    "loc": 18,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 37,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-DB-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for db.py.",
+        "snippet": "# Missing test suite for db.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "config"
+    ],
+    "usedBy": [
+      "attendance",
+      "auth",
+      "grades",
+      "report"
+    ],
+    "status": "legacy",
+    "summary": "db.py module managing db logic with 1 static analysis findings.",
+    "rawCode": "import sqlite3\nimport config\n\n_conn = None\n\ndef get_conn():\n    global _conn\n    if _conn is None:\n        _conn = sqlite3.connect(config.DB_PATH)\n        _conn.executescript(\"\"\"\n            CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, failed INTEGER DEFAULT 0);\n            CREATE TABLE students (id INTEGER PRIMARY KEY, name TEXT, level INTEGER);\n            CREATE TABLE marks (id INTEGER PRIMARY KEY, student_id INTEGER, subject TEXT, score REAL);\n            CREATE TABLE attendance (id INTEGER PRIMARY KEY, student_id INTEGER, day TEXT);\n        \"\"\")\n    return _conn\n\ndef find_student(name):\n    # SQL injection #1\n    q = \"SELECT id, name, level FROM students WHERE name = '\" + name + \"'\"\n    return get_conn().execute(q).fetchall()\n\n",
+    "aiExplanation": "Analysis of db.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T13:56:58.405708Z"
+  },
+  {
+    "id": "fees",
+    "name": "fees.py",
+    "path": "school_legacy/fees.py",
+    "loc": 9,
+    "complexity": 4,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 27,
+    "riskLevel": "low",
+    "issues": [
+      {
+        "id": "ISSUE-FEES-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for fees.py.",
+        "snippet": "# Missing test suite for fees.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "fees.py module managing fees logic with 1 static analysis findings.",
+    "rawCode": "def fee_due(level, late_days, has_sibling):\n    # Business rule: 20000 for levels 1-8, 30000 for levels 9-12\n    base = 20000 if level <= 8 else 30000\n    # Business rule: 10% discount if a sibling studies here\n    if has_sibling:\n        base = base * 0.9\n    # Business rule: late fee is 100 per day, capped at 2000\n    late = min(late_days * 100, 2000) if late_days > 0 else 0\n    return round(base + late, 2)\n",
+    "aiExplanation": "Analysis of fees.py completed with 1 issues detected and cyclomatic complexity of 4.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T13:56:58.405708Z"
+  },
+  {
+    "id": "grades",
+    "name": "grades.py",
+    "path": "school_legacy/grades.py",
+    "loc": 23,
+    "complexity": 5,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-GRADES-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for grades.py.",
+        "snippet": "# Missing test suite for grades.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "config",
+      "db"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "grades.py module managing grades logic with 1 static analysis findings.",
+    "rawCode": "import config\nimport db\n\ndef letter(score):\n    # Business rule: A from 90, B from 75, C from 60, D from the pass mark (40), else F\n    if score >= 90:\n        return \"A\"\n    if score >= 75:\n        return \"B\"\n    if score >= 60:\n        return \"C\"\n    if score >= config.PASS_MARK:\n        return \"D\"\n    return \"F\"\n\ndef result(student_id):\n    rows = db.get_conn().execute(\"SELECT score FROM marks WHERE student_id = ?\", (student_id,)).fetchall()\n    scores = [r[0] for r in rows]\n    if not scores:\n        return \"NO_MARKS\"\n    avg = sum(scores) / len(scores)\n    # Business rule: pass needs an average of 40 and no subject below 33\n    if avg >= config.PASS_MARK and min(scores) >= 33:\n        return \"PASS\"\n    return \"FAIL\"\n",
+    "aiExplanation": "Analysis of grades.py completed with 1 issues detected and cyclomatic complexity of 5.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T13:56:58.405708Z"
+  },
+  {
+    "id": "report",
+    "name": "report.py",
+    "path": "school_legacy/report.py",
+    "loc": 8,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 47,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-REPORT-1",
+        "type": "sql_injection",
+        "severity": "critical",
+        "line": 5,
+        "description": "SQL query constructed via dynamic string formatting/interpolation exposes database to injection attacks.",
+        "snippet": "q = f\"SELECT marks.subject, marks.score FROM marks JOIN students ON students.id = marks.student_id WHERE students.name = '{name}'\"",
+        "remediation": "Use parameterized SQL queries with bind parameter placeholders.",
+        "cwe": "CWE-89"
+      },
+      {
+        "id": "ISSUE-REPORT-2",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for report.py.",
+        "snippet": "# Missing test suite for report.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "report.py module managing report logic with 2 static analysis findings.",
+    "rawCode": "import db\n\ndef marks_by_student(name):\n    # SQL injection #3\n    q = f\"SELECT marks.subject, marks.score FROM marks JOIN students ON students.id = marks.student_id WHERE students.name = '{name}'\"\n    return db.get_conn().execute(q).fetchall()\n\ndef report_card(name):\n    rows = marks_by_student(name)\n    return {\"student\": name, \"subjects\": len(rows)}\n",
+    "aiExplanation": "Analysis of report.py completed with 2 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T13:56:58.405708Z"
+  }
+]
