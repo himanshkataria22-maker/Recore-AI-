@@ -71,7 +71,7 @@ export function UserMenu() {
         aria-haspopup="true"
       >
         {/* Avatar */}
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold shadow-md">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white dark:text-white text-xs font-semibold shadow-md">
           {user.avatar ? (
             <img
               src={user.avatar}

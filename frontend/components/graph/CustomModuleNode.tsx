@@ -62,7 +62,7 @@ export const CustomModuleNode = memo(({ data, selected }: NodeProps) => {
         </div>
 
         {nodeData.isBlastTarget ? (
-          <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500 text-white animate-pulse">
+          <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500 text-white dark:text-white animate-pulse">
             <Flame className="w-3 h-3" /> Origin
           </span>
         ) : nodeData.isBlastAffected ? (

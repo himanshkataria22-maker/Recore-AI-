@@ -33,11 +33,29 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { getChartColors } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { status, project, hasProject } = useProject();
   const [filterRisk, setFilterRisk] = useState<string>("all");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [chartColors, setChartColors] = useState(getChartColors());
+
+  // Update chart colors when theme changes
+  React.useEffect(() => {
+    const updateColors = () => {
+      setChartColors(getChartColors());
+    };
+    
+    // Listen for theme changes
+    const observer = new MutationObserver(updateColors);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   const modules = project?.modules || [];
   const summary = project?.summary;
@@ -345,8 +363,8 @@ export default function DashboardPage() {
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "#0f172a",
-                          borderColor: "#334155",
+                          backgroundColor: chartColors.tooltip.backgroundColor,
+                          borderColor: chartColors.tooltip.borderColor,
                           borderRadius: "8px",
                           fontSize: "12px",
                         }}
@@ -414,8 +432,8 @@ export default function DashboardPage() {
                       />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "#0f172a",
-                          borderColor: "#334155",
+                          backgroundColor: chartColors.tooltip.backgroundColor,
+                          borderColor: chartColors.tooltip.borderColor,
                           borderRadius: "8px",
                           fontSize: "12px",
                         }}

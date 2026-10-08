@@ -56,3 +56,25 @@ export function getIssueTypeLabel(type: IssueType): string {
 export function formatLoc(loc: number): string {
   return loc >= 1000 ? `${(loc / 1000).toFixed(1)}k` : `${loc}`;
 }
+
+/**
+ * Get theme-aware colors for Recharts components
+ * Detects if dark mode is active on the HTML element and returns appropriate hex colors
+ */
+export function getChartColors() {
+  const isDarkMode = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  return {
+    tooltip: {
+      backgroundColor: isDarkMode ? "#0f172a" : "#f8fafc",
+      borderColor: isDarkMode ? "#334155" : "#cbd5e1",
+      textColor: isDarkMode ? "#f1f5f9" : "#1e293b",
+    },
+    stroke: {
+      default: isDarkMode ? "#475569" : "#64748b",
+      critical: isDarkMode ? "#f87171" : "#dc2626",
+      affected: isDarkMode ? "#f43f5e" : "#e11d48",
+      grid: isDarkMode ? "#64748b" : "#94a3b8",
+      axis: isDarkMode ? "#64748b" : "#94a3b8",
+    },
+  };
+}

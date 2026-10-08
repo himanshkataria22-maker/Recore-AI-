@@ -34,6 +34,7 @@ import {
 
 import { useProject } from "@/contexts/ProjectContext";
 import { UploadAnalysisModal } from "@/components/ui/UploadAnalysisModal";
+import { getChartColors } from "@/lib/utils";
 
 const nodeTypes = {
   customModule: CustomModuleNode,
@@ -46,6 +47,22 @@ export default function DependencyGraphPage() {
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   const [riskFilter, setRiskFilter] = useState<string>("all");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [chartColors, setChartColors] = useState(getChartColors());
+
+  // Update chart colors when theme changes
+  useEffect(() => {
+    const updateColors = () => {
+      setChartColors(getChartColors());
+    };
+    
+    const observer = new MutationObserver(updateColors);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -111,7 +128,7 @@ export default function DependencyGraphPage() {
       }
 
       try {
-        const rawModules = project.modules || (await getModules());
+        const rawModules = project.modules || (await getModules(project?.id || "demo-project"));
         setModules(rawModules);
         if (rawModules.length > 0 && !selectedModuleId) {
           // Select highest risk module or first module as initial selection
@@ -176,12 +193,12 @@ export default function DependencyGraphPage() {
               type: "smoothstep",
               animated: isCritical,
               style: {
-                stroke: isCritical ? "#f87171" : "#475569",
+                stroke: isCritical ? "#f87171" : chartColors.stroke.default,
                 strokeWidth: isCritical ? 2.5 : 1.5,
               },
               markerEnd: {
                 type: MarkerType.ArrowClosed,
-                color: isCritical ? "#f87171" : "#64748b",
+                color: isCritical ? "#f87171" : chartColors.stroke.grid,
                 width: 12,
                 height: 12,
               },
@@ -234,13 +251,13 @@ export default function DependencyGraphPage() {
           ...edge,
           animated: isRelevant,
           style: {
-            stroke: isRelevant ? "#f43f5e" : "#334155",
+            stroke: isRelevant ? "#f43f5e" : chartColors.stroke.default,
             strokeWidth: isRelevant ? 3 : 1.5,
             filter: isRelevant ? "drop-shadow(0 0 6px rgba(244,63,94,0.6))" : undefined,
           },
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            color: isRelevant ? "#f43f5e" : "#475569",
+            color: isRelevant ? "#f43f5e" : chartColors.stroke.default,
             width: 16,
             height: 16,
           },
@@ -276,8 +293,8 @@ export default function DependencyGraphPage() {
       eds.map((edge) => ({
         ...edge,
         animated: false,
-        style: { stroke: "#475569", strokeWidth: 2 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: "#64748b", width: 14, height: 14 },
+        style: { stroke: chartColors.stroke.default, strokeWidth: 2 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: chartColors.stroke.grid, width: 14, height: 14 },
       }))
     );
   };

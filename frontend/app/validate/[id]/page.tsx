@@ -310,6 +310,26 @@ export default function ValidationProofPage() {
     ? "Already approved"
     : null;
 
+  // Determine if traffic routing to modernized is allowed
+  const canSwitchToModernized =
+    validation &&
+    validation.testsTotal > 0 &&
+    validation.testsPassed === validation.testsTotal &&
+    validation.approvalStatus === "approved" &&
+    validation.securityIssuesFixed > 0;
+
+  const switchToModernizedDisabledReason = !validation
+    ? "No validation run"
+    : validation.testsTotal === 0
+    ? "Tests must be run first"
+    : validation.testsPassed < validation.testsTotal
+    ? "All tests must pass before switching to modernized"
+    : validation.approvalStatus !== "approved"
+    ? "Module must be approved before switching traffic"
+    : validation.securityIssuesFixed === 0
+    ? "Security issues must be fixed before switching"
+    : null;
+
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -398,7 +418,9 @@ export default function ValidationProofPage() {
               </h2>
 
               <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
-                Zero functional regression detected. All domain edge cases, pricing proration formulas, and loyalty rules match the legacy baseline with 100% mathematical parity.
+                {validation.testsPassed === validation.testsTotal
+                  ? "All domain edge cases, pricing proration formulas, and loyalty rules match the legacy baseline with 100% behavioral parity."
+                  : `${validation.testsTotal - validation.testsPassed} test(s) failed. Module requires additional fixes before approval.`}
               </p>
             </div>
 
@@ -474,10 +496,13 @@ export default function ValidationProofPage() {
 
               <button
                 onClick={() => handleToggleRoute("modernized")}
-                disabled={isTogglingRoute}
+                disabled={isTogglingRoute || !canSwitchToModernized}
+                title={!canSwitchToModernized ? switchToModernizedDisabledReason || "" : "Switch to modernized version"}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
                   route?.target === "modernized"
                     ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+                    : !canSwitchToModernized || isTogglingRoute
+                    ? "text-slate-400 bg-slate-200 dark:bg-slate-800 cursor-not-allowed opacity-50"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-900"
                 }`}
               >
@@ -673,11 +698,11 @@ export default function ValidationProofPage() {
               <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               <div className="text-xs space-y-1">
                 <p className="font-bold text-slate-900 dark:text-white">
-                  Module Approved by {validation.approvedBy}
+                  Module Approved by {validation.approvedBy || "—"}
                 </p>
-                <p className="text-slate-700 dark:text-slate-300">{validation.approvalNotes}</p>
+                <p className="text-slate-700 dark:text-slate-300">{validation.approvalNotes || "No notes provided"}</p>
                 <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 block pt-1">
-                  Signed at: {new Date(validation.approvedAt || "").toLocaleString()} (Audit Hash Recorded)
+                  Signed at: {validation.approvedAt ? new Date(validation.approvedAt).toLocaleString() : "—"} (Audit Hash Recorded)
                 </span>
               </div>
             </div>
@@ -699,7 +724,7 @@ export default function ValidationProofPage() {
                 <button
                   onClick={() => handleApprove("rejected")}
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-rose-100 dark:bg-slate-800 dark:hover:bg-rose-950 text-slate-700 dark:text-slate-300 hover:text-rose-700 dark:hover:text-rose-300 text-xs font-bold border border-slate-300 dark:border-slate-700 hover:border-rose-400 dark:hover:border-rose-700 transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-rose-100 dark:bg-slate-800 dark:hover:bg-rose-950 text-slate-700 dark:text-slate-300 hover:text-rose-700 dark:hover:text-rose-300 text-xs font-bold border border-slate-300 dark:border-slate-700 hover:border-rose-400 dark:hover:border-rose-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ThumbsDown className="w-4 h-4" />
                   Reject & Request Rerun
@@ -707,8 +732,13 @@ export default function ValidationProofPage() {
 
                 <button
                   onClick={() => handleApprove("approved")}
-                  disabled={isSubmitting}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                  disabled={isSubmitting || !canApprove}
+                  title={canApprove ? "Approve this modernized module for production" : (approveDisabledReason || "")}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    canApprove
+                      ? "bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer"
+                      : "bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed opacity-60"
+                  }`}
                 >
                   <ThumbsUp className="w-4 h-4 fill-current" />
                   Approve Modernized Module
