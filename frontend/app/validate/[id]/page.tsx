@@ -733,11 +733,11 @@ export default function ValidationProofPage() {
                 <button
                   onClick={() => handleApprove("approved")}
                   disabled={isSubmitting || !canApprove}
-                  title={canApprove ? "Approve this modernized module for production" : (approveDisabledReason || "")}
+                  title={!canApprove ? approveDisabledReason || "" : "Approve this modernized module for production"}
                   className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                    canApprove
-                      ? "bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer"
-                      : "bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed opacity-60"
+                    !canApprove || isSubmitting
+                      ? "bg-slate-400 dark:bg-slate-600 text-slate-700 dark:text-slate-300 opacity-50 cursor-not-allowed"
+                      : "bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20 active:scale-95"
                   }`}
                 >
                   <ThumbsUp className="w-4 h-4 fill-current" />
