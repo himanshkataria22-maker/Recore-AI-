@@ -13,6 +13,7 @@ import {
   getProjectSummary,
   getModernizationPlan,
   getDependencyGraph,
+  getProjectStatus,
 } from "@/lib/api";
 
 export type ProjectStatus = "empty" | "uploading" | "analyzing" | "ready" | "error";
@@ -52,7 +53,7 @@ interface ProjectContextType {
   refreshProjectData: () => Promise<void>;
 }
 
-const STORAGE_KEY = "recore_project_state_v1";
+const STORAGE_KEY = "recore_project_state_v2";
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
@@ -69,7 +70,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.status === "ready" && parsed.project) {
+        if (parsed && parsed.status === "ready" && parsed.project && parsed.project.id) {
           setProject(parsed.project);
           setStatus("ready");
           return;
@@ -97,45 +98,62 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // Clear all cached project state
+  const clearAllCachedProjectState = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem("recore_selected_module");
+      localStorage.removeItem("recore_insights_cache");
+      localStorage.removeItem("recore_validations_cache");
+    } catch (e) {
+      // ignore
+    }
+    setProject(null);
+    setStatus("empty");
+  };
+
   // Process uploaded zip and generate dynamic consistent project state
   const uploadAndAnalyzeZip = async (file: File) => {
-    // Validate file type
     if (!file.name.toLowerCase().endsWith(".zip")) {
       setErrorMessage("Only .zip codebase archives are supported.");
       setStatus("error");
       throw new Error("Invalid file type. Please upload a .zip archive.");
     }
 
-    // Validate size (max 50MB)
     if (file.size > 50 * 1024 * 1024) {
       setErrorMessage("File exceeds 50MB limit. Please upload a smaller .zip archive.");
       setStatus("error");
       throw new Error("File size exceeds 50MB limit.");
     }
 
+    // Step 1: Clear all previous project state
+    clearAllCachedProjectState();
+
     setErrorMessage(null);
     setStatus("uploading");
     setUploadProgress(10);
-    setUploadStep("Reading archive contents...");
+    setUploadStep("Uploading and extracting archive...");
 
     try {
       // 1. Upload phase
-      await uploadProjectZip(file, (pct, stepMsg) => {
+      const uploadRes = await uploadProjectZip(file, (pct, stepMsg) => {
         setUploadProgress(Math.min(60, pct));
         setUploadStep(stepMsg);
       });
+
+      const projectId = uploadRes.projectId;
 
       // 2. Analyzing phase
       setStatus("analyzing");
       setUploadProgress(70);
       setUploadStep("Executing AST parser & vulnerability scanner...");
 
-      // Fetch real or generated datasets
+      // Fetch project data for this specific project ID
       const [modulesData, summaryData, planData, graphData] = await Promise.all([
-        getModules(),
-        getProjectSummary(),
-        getModernizationPlan(),
-        getDependencyGraph(),
+        getModules(projectId),
+        getProjectSummary(projectId),
+        getModernizationPlan(projectId),
+        getDependencyGraph(projectId),
       ]);
 
       setUploadProgress(90);
@@ -156,13 +174,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const pendingModule = modulesData.find((m) => m.status !== "modernized");
       const nextModuleInQueue = pendingModule ? pendingModule.name : undefined;
 
-      // Consistent vulnerability breakdown sum
       const totalVulns = summaryData.topVulnerabilities.reduce((acc, v) => acc + v.count, 0);
-      const topVulnsText = `${totalVulns} Injections & Threat Vectors`;
+      const topVulnsText = totalVulns > 0 ? `${totalVulns} Security Findings` : "No vulnerabilities detected";
 
       const projectData: ProjectData = {
-        id: `proj-${Date.now()}`,
-        name: file.name.replace(/\.zip$/i, ""),
+        id: projectId,
+        name: uploadRes.name || file.name.replace(/\.zip$/i, ""),
         uploadedAt: new Date().toISOString(),
         totalModules,
         totalLoc,
@@ -172,9 +189,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         lowRisks,
         modernizedCount,
         modernizedPercent,
-        testsTotal: 47,
-        testsPassed: 47,
-        testsPassingPercent: 100,
+        testsTotal: 0,
+        testsPassed: 0,
+        testsPassingPercent: 0,
         nextModuleInQueue,
         topVulnerabilitiesSummary: topVulnsText,
         modules: modulesData,
@@ -205,17 +222,17 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setErrorMessage(null);
     setUploadProgress(0);
     setUploadStep("");
-    saveState("empty", null);
+    clearAllCachedProjectState();
   };
 
   const refreshProjectData = async () => {
-    if (status === "ready" && project) {
+    if (status === "ready" && project && project.id) {
       try {
         const [modulesData, summaryData, planData, graphData] = await Promise.all([
-          getModules(),
-          getProjectSummary(),
-          getModernizationPlan(),
-          getDependencyGraph(),
+          getModules(project.id),
+          getProjectSummary(project.id),
+          getModernizationPlan(project.id),
+          getDependencyGraph(project.id),
         ]);
         const updatedProject: ProjectData = {
           ...project,

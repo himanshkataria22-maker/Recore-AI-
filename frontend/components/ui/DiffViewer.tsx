@@ -44,7 +44,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               onClick={() => setViewMode("split")}
               className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-all ${
                 viewMode === "split"
-                  ? "bg-white dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-slate-300 dark:border-cyan-500/30 shadow-xs"
+                  ? "bg-white dark:bg-cyan-500/20 text-slate-900 dark:text-cyan-300 border border-slate-300 dark:border-cyan-500/30 shadow-xs font-semibold"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
               }`}
             >
@@ -55,7 +55,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
               onClick={() => setViewMode("unified")}
               className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-all ${
                 viewMode === "unified"
-                  ? "bg-white dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-slate-300 dark:border-cyan-500/30 shadow-xs"
+                  ? "bg-white dark:bg-cyan-500/20 text-slate-900 dark:text-cyan-300 border border-slate-300 dark:border-cyan-500/30 shadow-xs font-semibold"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
               }`}
             >

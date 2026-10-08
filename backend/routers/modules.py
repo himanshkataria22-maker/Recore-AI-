@@ -1,5 +1,5 @@
 """
-Modules, Business Rules, Test Generation, Modernization, Insights, and Strangler Routing Routes.
+Modules, Business Rules, Test Generation, Modernization, Insights, and Strangler Routing Routes (Project Scoped).
 """
 from fastapi import APIRouter, HTTPException, Query, Body, Response
 from typing import List, Optional, Dict, Any
@@ -16,7 +16,7 @@ from ..models.schema import (
     RouteUpdateRequest,
     ShadowRunResult
 )
-from ..analyzer.engine import CodebaseAnalyzer
+from ..projects.manager import project_manager
 from ..analyzer.insights import InsightsEngine
 from ..extractor.rules import BusinessRuleExtractor
 from ..tester.generator import TestGenerator
@@ -31,304 +31,360 @@ from ..adapters.generator import (
 
 router = APIRouter(tags=["modules"])
 
-LEGACY_APP_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "sample_legacy_app")
-analyzer = CodebaseAnalyzer(LEGACY_APP_PATH)
 rule_extractor = BusinessRuleExtractor()
 test_gen = TestGenerator()
-modernizer = ModernizerEngine(LEGACY_APP_PATH)
 insights_engine = InsightsEngine()
 
-# In-memory store for validation runs and approvals
-_VALIDATION_STORE: Dict[str, ValidationRun] = {}
-_APPROVALS_STORE: Dict[str, Dict[str, Any]] = {}
 
-@router.get("/modules", response_model=List[Module])
-def get_modules():
-    """Retrieve all discovered codebase modules."""
-    return analyzer.analyze()
+def _get_target_project_id(project_id: Optional[str] = None) -> str:
+    pid = project_id or project_manager.get_latest_project_id()
+    if not pid:
+        raise HTTPException(status_code=404, detail="No project found.")
+    return pid
 
-@router.get("/modules/{module_id}", response_model=Module)
-def get_module_by_id(module_id: str):
-    """Retrieve single module by ID."""
-    modules = analyzer.analyze()
-    for m in modules:
-        if m.id == module_id:
-            return m
-    raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found.")
 
-@router.get("/modules/{module_id}/insights", response_model=AIInsight)
-def get_module_insights(module_id: str):
-    """
-    Retrieve grounded, fact-checked explainable AI insights for a module.
-    Validated against static AST analysis facts (hallucinated citations discarded).
-    """
-    modules = analyzer.analyze()
-    target = next((m for m in modules if m.id == module_id), None)
-    if not target:
-        raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found.")
+def _get_module_or_404(project_id: str, module_id: str) -> Module:
+    module = project_manager.get_module(project_id, module_id)
+    if not module:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Module '{module_id}' not found in project '{project_id}'."
+        )
+    return module
+
+
+# ==============================================================================
+# PROJECT SCOPED MODULE ENDPOINTS
+# ==============================================================================
+
+@router.get("/projects/{project_id}/modules", response_model=List[Module])
+def get_project_modules(project_id: str):
+    """Retrieve all discovered modules for a project."""
+    return project_manager.get_modules(project_id)
+
+
+@router.get("/projects/{project_id}/modules/{module_id}", response_model=Module)
+def get_project_module_by_id(project_id: str, module_id: str):
+    """Retrieve single module by ID within a project."""
+    return _get_module_or_404(project_id, module_id)
+
+
+@router.get("/projects/{project_id}/modules/{module_id}/insights", response_model=AIInsight)
+def get_project_module_insights(project_id: str, module_id: str):
+    """Retrieve explainable AI insights for a module within a project."""
+    target = _get_module_or_404(project_id, module_id)
     return insights_engine.generate_insights(target)
 
-@router.get("/business-rules", response_model=List[BusinessRule])
-def get_all_business_rules(module_id: Optional[str] = Query(None, alias="moduleId")):
-    """Retrieve extracted business rules for all modules or a specific module."""
-    modules = analyzer.analyze()
+
+@router.get("/projects/{project_id}/business-rules", response_model=List[BusinessRule])
+def get_project_business_rules(project_id: str, module_id: Optional[str] = Query(None, alias="moduleId")):
+    """Retrieve extracted business rules for all or a specific module in a project."""
+    modules = project_manager.get_modules(project_id)
     rules: List[BusinessRule] = []
-    
     target_modules = [m for m in modules if m.id == module_id] if module_id else modules
     for m in target_modules:
         mod_rules = rule_extractor.extract_business_rules(m)
         rules.extend(mod_rules)
-        
     return rules
 
-@router.get("/modules/{module_id}/rules", response_model=List[BusinessRule])
-def get_module_business_rules(module_id: str):
-    """Retrieve business rules for a specific module."""
-    return get_all_business_rules(module_id=module_id)
 
-@router.get("/blast-radius/{module_id}")
-def get_module_blast_radius(module_id: str):
-    """Calculate blast radius and transitive dependencies."""
-    modules = analyzer.analyze()
+@router.get("/projects/{project_id}/modules/{module_id}/rules", response_model=List[BusinessRule])
+def get_project_module_rules(project_id: str, module_id: str):
+    """Retrieve business rules for a specific module in a project."""
+    return get_project_business_rules(project_id, module_id=module_id)
+
+
+@router.get("/projects/{project_id}/blast-radius/{module_id}")
+def get_project_module_blast_radius(project_id: str, module_id: str):
+    """Calculate blast radius and transitive dependencies for a module in a project."""
+    modules = project_manager.get_modules(project_id)
+    _get_module_or_404(project_id, module_id)
     return calculate_blast_radius(modules, module_id)
 
-@router.post("/modules/{module_id}/generate-tests")
-def generate_tests_for_module(module_id: str):
-    """Generate behavioral test suite for a module."""
-    modules = analyzer.analyze()
-    target = next((m for m in modules if m.id == module_id), None)
-    if not target:
-        raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found.")
-        
+
+@router.post("/projects/{project_id}/modules/{module_id}/generate-tests")
+def generate_project_module_tests(project_id: str, module_id: str):
+    """Generate behavioral test suite for a module in a project."""
+    target = _get_module_or_404(project_id, module_id)
     cases = test_gen.generate_behavior_tests(target)
-    return {"moduleId": module_id, "casesTotal": len(cases), "cases": cases}
+    return {"projectId": project_id, "moduleId": module_id, "casesTotal": len(cases), "cases": cases}
 
-@router.post("/modules/{module_id}/modernize", response_model=ValidationRun)
-def modernize_single_module(module_id: str):
-    """Run automated modernization, golden master test verification, and produce ValidationRun."""
-    modules = analyzer.analyze()
-    target = next((m for m in modules if m.id == module_id), None)
-    if not target:
-        raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found.")
-        
+
+@router.post("/projects/{project_id}/modules/{module_id}/modernize", response_model=ValidationRun)
+def modernize_project_module(project_id: str, module_id: str):
+    """Run automated modernization and golden master verification for a module in a project."""
+    target = _get_module_or_404(project_id, module_id)
+    p_dir = project_manager.get_project_dir(project_id)
+    src_dir = str(p_dir / "src")
+
+    modernizer = ModernizerEngine(src_dir)
     val_run = modernizer.modernize_module(target)
-    _VALIDATION_STORE[module_id] = val_run
+    project_manager.save_validation(project_id, module_id, val_run)
     return val_run
 
-@router.get("/validation/{module_id}", response_model=ValidationRun)
-@router.get("/validate/{module_id}", response_model=ValidationRun)
-def get_validation_run(module_id: str):
-    """Get latest validation run results and parity proofs for a module."""
-    if module_id in _VALIDATION_STORE:
-        return _VALIDATION_STORE[module_id]
-        
-    # If not yet generated, modernize and return
-    modules = analyzer.analyze()
-    target = next((m for m in modules if m.id == module_id), None)
-    if not target:
-        raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found.")
-        
-    val_run = modernizer.modernize_module(target)
-    _VALIDATION_STORE[module_id] = val_run
-    return val_run
 
-@router.post("/validation/{module_id}/approve")
-@router.post("/modules/{module_id}/approve")
-def submit_approval(
-    module_id: str,
-    payload: Dict[str, Any] = Body(...)
-):
-    """Submit human approval / rejection sign-off for modernized module."""
+@router.get("/projects/{project_id}/validation/{module_id}", response_model=ValidationRun)
+@router.get("/projects/{project_id}/modules/{module_id}/validation", response_model=ValidationRun)
+def get_project_validation_run(project_id: str, module_id: str):
+    """Get latest validation run for a module in a project."""
+    val = project_manager.get_validation(project_id, module_id)
+    if val:
+        return val
+    return modernize_project_module(project_id, module_id)
+
+
+@router.post("/projects/{project_id}/validation/{module_id}/approve")
+@router.post("/projects/{project_id}/modules/{module_id}/approve")
+def submit_project_approval(project_id: str, module_id: str, payload: Dict[str, Any] = Body(...)):
+    """Submit human approval sign-off for a module in a project."""
+    _get_module_or_404(project_id, module_id)
     status = payload.get("status", "approved")
     notes = payload.get("notes", "Developer sign-off.")
     reviewer = payload.get("reviewerName", "alex.rivera@enterprise.corp")
     now_iso = datetime.utcnow().isoformat() + "Z"
 
-    if module_id in _VALIDATION_STORE:
-        val_run = _VALIDATION_STORE[module_id]
+    val_run = project_manager.get_validation(project_id, module_id)
+    if val_run:
         val_run.approval_status = status
         val_run.approval_notes = notes
         val_run.approved_by = reviewer
         val_run.approved_at = now_iso
+        project_manager.save_validation(project_id, module_id, val_run)
 
-    _APPROVALS_STORE[module_id] = {
+    app_data = {
         "status": status,
         "notes": notes,
         "reviewer": reviewer,
         "timestamp": now_iso
     }
+    project_manager.save_approval(project_id, module_id, app_data)
 
     return {
         "success": True,
-        "message": f"Module {module_id} successfully {status}. Sign-off logged in audit vault.",
+        "projectId": project_id,
+        "moduleId": module_id,
+        "message": f"Module {module_id} successfully {status}. Sign-off logged.",
         "timestamp": now_iso
     }
 
-@router.post("/modules/{module_id}/rollback")
-def rollback_module(module_id: str):
-    """Rollback modernized module to legacy v0 baseline and reset strangler route to legacy."""
+
+@router.post("/projects/{project_id}/modules/{module_id}/rollback")
+def rollback_project_module(project_id: str, module_id: str):
+    """Rollback modernized module to legacy baseline in project."""
+    target = _get_module_or_404(project_id, module_id)
+    p_dir = project_manager.get_project_dir(project_id)
+    src_dir = str(p_dir / "src")
+
+    modernizer = ModernizerEngine(src_dir)
     success = modernizer.rollback_module(module_id)
     if not success:
         raise HTTPException(status_code=400, detail=f"Failed to rollback module '{module_id}'.")
-        
-    if module_id in _VALIDATION_STORE:
-        del _VALIDATION_STORE[module_id]
+
+    # Reset route to legacy
+    route_data = {"moduleId": module_id, "target": "legacy", "lastUpdated": datetime.utcnow().isoformat() + "Z"}
+    project_manager.save_route(project_id, module_id, route_data)
 
     return {
         "success": True,
-        "message": f"Module {module_id} has been safely rolled back to legacy baseline. Strangler routing set to legacy."
+        "message": f"Module {module_id} has been safely rolled back to legacy baseline."
     }
 
-# ==============================================================================
-# Strangler Adapter Routing & Shadow Comparison Endpoints
-# ==============================================================================
-@router.get("/modules/{module_id}/route", response_model=ModuleRoute)
-def get_module_routing(module_id: str):
-    """Retrieve current strangler pattern traffic routing target (legacy | modernized)."""
-    modules = analyzer.analyze()
-    target = next((m for m in modules if m.id == module_id), None)
-    if not target:
-        raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found.")
-    return get_module_route(module_id)
 
-@router.post("/modules/{module_id}/route", response_model=ModuleRoute)
-def update_module_routing(module_id: str, body: RouteUpdateRequest):
-    """Toggle strangler pattern traffic routing between legacy and modernized."""
-    modules = analyzer.analyze()
-    target = next((m for m in modules if m.id == module_id), None)
-    if not target:
-        raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found.")
-    
-    # Ensure adapter exists
-    ensure_adapter_exists(target)
-    return set_module_route(module_id, body.target)
+@router.get("/projects/{project_id}/modules/{module_id}/route", response_model=ModuleRoute)
+def get_project_module_routing(project_id: str, module_id: str):
+    """Retrieve strangler pattern traffic routing target for module in project."""
+    _get_module_or_404(project_id, module_id)
+    rt = project_manager.get_route(project_id, module_id)
+    if rt:
+        return ModuleRoute.model_validate(rt)
+    return ModuleRoute(
+        moduleId=module_id,
+        target="legacy",
+        adapterPath=f"/backend/adapters/{module_id}_adapter.py",
+        lastUpdated=datetime.utcnow().isoformat() + "Z"
+    )
 
-@router.post("/modules/{module_id}/shadow-run", response_model=ShadowRunResult)
-def run_shadow_comparison_endpoint(module_id: str):
-    """
-    Executes golden-master test cases through the strangler adapter against both
-    legacy (v0) and modernized (v1) versions and returns a live comparative diff table.
-    """
-    modules = analyzer.analyze()
-    target = next((m for m in modules if m.id == module_id), None)
-    if not target:
-        raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found.")
 
-    try:
-        # Ensure adapter exists
-        ensure_adapter_exists(target)
-        result = execute_shadow_comparison(module_id, LEGACY_APP_PATH, modernizer.golden_runner)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Shadow run execution failed: {str(e)}")
+@router.post("/projects/{project_id}/modules/{module_id}/route", response_model=ModuleRoute)
+def update_project_module_routing(project_id: str, module_id: str, body: RouteUpdateRequest):
+    """Update strangler pattern traffic routing target for module in project."""
+    target_mod = _get_module_or_404(project_id, module_id)
+    ensure_adapter_exists(target_mod)
 
-# ==============================================================================
-# Downloadable Modernization Audit Report
-# ==============================================================================
-@router.get("/modules/{module_id}/report")
-def download_audit_report(module_id: str):
-    """
-    Generates and returns a downloadable Markdown audit report covering
-    transformations, tests passed, issues fixed, approval status, and current routing.
-    """
-    modules = analyzer.analyze()
-    target = next((m for m in modules if m.id == module_id), None)
-    if not target:
-        raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found.")
+    rt_data = {
+        "moduleId": module_id,
+        "target": body.target,
+        "adapterPath": f"/backend/adapters/{module_id}_adapter.py",
+        "lastUpdated": datetime.utcnow().isoformat() + "Z"
+    }
+    project_manager.save_route(project_id, module_id, rt_data)
+    return ModuleRoute.model_validate(rt_data)
 
-    # Validation info
-    val_run = _VALIDATION_STORE.get(module_id)
-    if not val_run:
-        val_run = modernizer.modernize_module(target)
-        _VALIDATION_STORE[module_id] = val_run
 
-    approval_info = _APPROVALS_STORE.get(module_id, {
+@router.post("/projects/{project_id}/modules/{module_id}/shadow-run", response_model=ShadowRunResult)
+def run_project_shadow_comparison(project_id: str, module_id: str):
+    """Execute shadow comparison between legacy and modernized module in project."""
+    target_mod = _get_module_or_404(project_id, module_id)
+    p_dir = project_manager.get_project_dir(project_id)
+    src_dir = str(p_dir / "src")
+
+    modernizer = ModernizerEngine(src_dir)
+    ensure_adapter_exists(target_mod)
+    return execute_shadow_comparison(module_id, src_dir, modernizer.golden_runner)
+
+
+@router.get("/projects/{project_id}/modules/{module_id}/report")
+def download_project_audit_report(project_id: str, module_id: str):
+    """Generates downloadable Markdown audit report for module in project."""
+    target = _get_module_or_404(project_id, module_id)
+    val_run = get_project_validation_run(project_id, module_id)
+    route_info = get_project_module_routing(project_id, module_id)
+    approval_info = project_manager.get_approval(project_id, module_id) or {
         "status": val_run.approval_status,
         "notes": val_run.approval_notes or "Pending lead sign-off",
         "reviewer": val_run.approved_by or "alex.rivera@enterprise.corp",
         "timestamp": val_run.approved_at or datetime.utcnow().isoformat() + "Z"
-    })
+    }
 
-    route_info = get_module_route(module_id)
     now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    # Table of issues
-    issues_table_rows = []
-    for iss in target.issues:
-        issues_table_rows.append(
-            f"| `{iss.id}` | {iss.severity.upper()} | `{iss.cwe or 'N/A'}` | Line {iss.line} | {iss.description} | **Remediated in v1** |"
-        )
+    issues_table_rows = [
+        f"| `{iss.id}` | {iss.severity.upper()} | `{iss.cwe or 'N/A'}` | Line {iss.line} | {iss.description} | **Remediated in v1** |"
+        for iss in target.issues
+    ]
     issues_table = "\n".join(issues_table_rows) if issues_table_rows else "| - | - | - | - | No critical vulnerabilities detected | Certified |"
 
-    # Test cases table
-    test_rows = []
-    for tc in val_run.test_cases:
-        test_rows.append(
-            f"| `{tc.id}` | {tc.name} | `{tc.type}` | **{tc.status.upper()}** | `{tc.duration_ms}ms` | `{tc.assertion}` |"
-        )
+    test_rows = [
+        f"| `{tc.id}` | {tc.name} | `{tc.type}` | **{tc.status.upper()}** | `{tc.duration_ms}ms` | `{tc.assertion}` |"
+        for tc in val_run.test_cases
+    ]
     tests_table = "\n".join(test_rows) if test_rows else "| - | - | - | - | - | - |"
 
     markdown_report = f"""# ReCore AI Modernization & Compliance Audit Report
+**Project ID:** `{project_id}`  
 **Module Name:** `{target.name}` (ID: `{target.id}`)  
 **Generated At:** {now_str}  
-**Target Repository:** `enterprise/legacy-billing-py` (Branch: `main`)  
 **Run ID:** `{val_run.run_id}`  
 
 ---
 
 ## 1. Executive Summary & Strangler Routing Status
 - **Active Traffic Routing Target:** `{route_info.target.upper()}`
-- **Generated Adapter Location:** `{route_info.adapter_path or f'/backend/adapters/{target.id}_adapter.py'}`
 - **Behavioral Contract Preservation:** **{val_run.preservation_score}% Parity** ({val_run.tests_passed}/{val_run.tests_total} Golden Master Tests Passed)
-- **Security Posture:** **{val_run.security_issues_fixed} Vulnerabilities Remediated** (Zero High/Critical remaining in v1)
+- **Security Posture:** **{val_run.security_issues_fixed} Vulnerabilities Remediated**
 - **Codebase Optimization:** {val_run.diff.before_loc} LOC -> {val_run.diff.after_loc} LOC ({val_run.diff.complexity_reduction})
 
 ---
 
-## 2. Human Verification & Dual-Key Sign-Off Gate
+## 2. Human Verification Sign-Off
 - **Approval Status:** **{approval_info['status'].upper()}**
 - **Approved / Reviewed By:** `{approval_info['reviewer']}`
 - **Timestamp:** `{approval_info['timestamp']}`
-- **Reviewer Audit Notes:**
-> {approval_info['notes']}
+- **Notes:** > {approval_info['notes']}
 
 ---
 
-## 3. Security Vulnerability Remediations
+## 3. Security Vulnerabilities
 | Issue ID | Severity | CWE | Location | Description | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 {issues_table}
 
 ---
 
-## 4. Architectural Transformation & Code Diff Summary
-- **Modernization Stack:** Python 3.11+ / Pydantic v2 / Async DB-API Parameterized Binding
-- **Before LOC:** `{val_run.diff.before_loc}` lines
-- **After LOC:** `{val_run.diff.after_loc}` lines
-- **Cyclomatic Complexity Reduction:** `{val_run.diff.complexity_reduction}`
-
-```python
-# Modernized Snapshot ({target.name} - v1_modernized.py)
-{val_run.diff.after[:1200]}
-...
-```
-
----
-
-## 5. Golden Master Behavioral Test Parity Matrix
+## 4. Golden Master Parity Matrix
 | Test Case ID | Name | Scenario Type | Status | Latency | Assertion Contract |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 {tests_table}
 
 ---
-*Certified by ReCore AI Autonomous Migration Engine. Cryptographic Sign-Off Hash: `SHA256-{hash(now_str)}`*
+*Certified by ReCore AI Engine.*
 """
-
     return Response(
         content=markdown_report,
         media_type="text/markdown",
         headers={
-            "Content-Disposition": f'attachment; filename="{module_id}_modernization_audit_report.md"'
+            "Content-Disposition": f'attachment; filename="{project_id}_{module_id}_audit_report.md"'
         }
     )
 
+
+# ==============================================================================
+# UN-SCOPED LEGACY FALLBACK ENDPOINTS
+# ==============================================================================
+
+@router.get("/modules", response_model=List[Module])
+def get_modules_fallback():
+    pid = _get_target_project_id()
+    return get_project_modules(pid)
+
+@router.get("/modules/{module_id}", response_model=Module)
+def get_module_by_id_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return get_project_module_by_id(pid, module_id)
+
+@router.get("/modules/{module_id}/insights", response_model=AIInsight)
+def get_module_insights_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return get_project_module_insights(pid, module_id)
+
+@router.get("/business-rules", response_model=List[BusinessRule])
+def get_all_business_rules_fallback(module_id: Optional[str] = Query(None, alias="moduleId")):
+    pid = _get_target_project_id()
+    return get_project_business_rules(pid, module_id=module_id)
+
+@router.get("/modules/{module_id}/rules", response_model=List[BusinessRule])
+def get_module_business_rules_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return get_project_module_rules(pid, module_id)
+
+@router.get("/blast-radius/{module_id}")
+def get_module_blast_radius_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return get_project_module_blast_radius(pid, module_id)
+
+@router.post("/modules/{module_id}/generate-tests")
+def generate_tests_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return generate_project_module_tests(pid, module_id)
+
+@router.post("/modules/{module_id}/modernize", response_model=ValidationRun)
+def modernize_module_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return modernize_project_module(pid, module_id)
+
+@router.get("/validation/{module_id}", response_model=ValidationRun)
+@router.get("/validate/{module_id}", response_model=ValidationRun)
+def get_validation_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return get_project_validation_run(pid, module_id)
+
+@router.post("/validation/{module_id}/approve")
+@router.post("/modules/{module_id}/approve")
+def submit_approval_fallback(module_id: str, payload: Dict[str, Any] = Body(...)):
+    pid = _get_target_project_id()
+    return submit_project_approval(pid, module_id, payload)
+
+@router.post("/modules/{module_id}/rollback")
+def rollback_module_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return rollback_project_module(pid, module_id)
+
+@router.get("/modules/{module_id}/route", response_model=ModuleRoute)
+def get_module_route_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return get_project_module_routing(pid, module_id)
+
+@router.post("/modules/{module_id}/route", response_model=ModuleRoute)
+def update_module_route_fallback(module_id: str, body: RouteUpdateRequest):
+    pid = _get_target_project_id()
+    return update_project_module_routing(pid, module_id, body)
+
+@router.post("/modules/{module_id}/shadow-run", response_model=ShadowRunResult)
+def shadow_run_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return run_project_shadow_comparison(pid, module_id)
+
+@router.get("/modules/{module_id}/report")
+def download_report_fallback(module_id: str):
+    pid = _get_target_project_id()
+    return download_project_audit_report(pid, module_id)

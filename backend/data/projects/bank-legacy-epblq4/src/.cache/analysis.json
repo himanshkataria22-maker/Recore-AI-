@@ -1,0 +1,275 @@
+[
+  {
+    "id": "accounts",
+    "name": "accounts.py",
+    "path": "accounts.py",
+    "loc": 10,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-ACCOUNTS-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for accounts.py.",
+        "snippet": "# Missing test suite for accounts.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db"
+    ],
+    "usedBy": [
+      "transactions"
+    ],
+    "status": "legacy",
+    "summary": "accounts.py module managing accounts logic with 1 static analysis findings.",
+    "rawCode": "\"\"\"Bank account management module.\"\"\"\nimport db\n\ndef create_account(opening_deposit: float):\n    # Business Rule: Min opening deposit 1000\n    if opening_deposit < 1000:\n        raise ValueError(\"Minimum opening deposit is 1000\")\n    return {\"status\": \"created\", \"balance\": opening_deposit}\n\ndef check_minimum_balance(balance: float) -> bool:\n    # Business Rule: Min balance 1000\n    return balance >= 1000\n",
+    "aiExplanation": "Analysis of accounts.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:57:11.063502Z"
+  },
+  {
+    "id": "auth",
+    "name": "auth.py",
+    "path": "auth.py",
+    "loc": 12,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 33,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-AUTH-1",
+        "type": "deprecated_api",
+        "severity": "medium",
+        "line": 11,
+        "description": "Insecure legacy MD5 hashing routine used without salt or key stretching.",
+        "snippet": "pw_hash = hashlib.md5(passw.encode('utf-8')).hexdigest()",
+        "remediation": "Migrate password hashing to Argon2id or bcrypt with appropriate work factors.",
+        "cwe": "CWE-328"
+      },
+      {
+        "id": "ISSUE-AUTH-2",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for auth.py.",
+        "snippet": "# Missing test suite for auth.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "auth.py module managing auth logic with 2 static analysis findings.",
+    "rawCode": "\"\"\"Banking authentication service.\"\"\"\nimport hashlib\nimport db\n\ndef login(username: str, passw: str, failed_attempts: int = 0):\n    # Business Rule: Lock after 3 failed logins\n    if failed_attempts >= 3:\n        return {\"status\": \"locked\", \"message\": \"Account locked after 3 failed logins\"}\n        \n    # Vulnerability: MD5 Hash\n    pw_hash = hashlib.md5(passw.encode('utf-8')).hexdigest()\n    \n    # Vulnerability: SQL Injection via string concatenation\n    query = \"SELECT * FROM users WHERE u='\" + username + \"' AND p='\" + pw_hash + \"'\"\n    return {\"status\": \"authenticated\", \"user\": username, \"query\": query}\n",
+    "aiExplanation": "Analysis of auth.py completed with 2 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:57:11.063502Z"
+  },
+  {
+    "id": "config",
+    "name": "config.py",
+    "path": "config.py",
+    "loc": 4,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-CONFIG-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for config.py.",
+        "snippet": "# Missing test suite for config.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [],
+    "usedBy": [
+      "db"
+    ],
+    "status": "legacy",
+    "summary": "config.py module managing config logic with 1 static analysis findings.",
+    "rawCode": "\"\"\"Bank system settings and secret parameters.\"\"\"\nBANK_SECRET = \"top_secret_bank_key_9988\"\nDB_PASS = \"bank_db_pass_2026\"\nSYSTEM_ENV = \"production\"\n",
+    "aiExplanation": "Analysis of config.py completed with 1 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:57:11.063502Z"
+  },
+  {
+    "id": "db",
+    "name": "db.py",
+    "path": "db.py",
+    "loc": 6,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 52,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-DB-1",
+        "type": "sql_injection",
+        "severity": "critical",
+        "line": 6,
+        "description": "SQL query constructed via dynamic string formatting/interpolation exposes database to injection attacks.",
+        "snippet": "query = f\"SELECT * FROM accounts WHERE acc_num='{acc_id}'\"",
+        "remediation": "Use parameterized SQL queries with bind parameter placeholders.",
+        "cwe": "CWE-89"
+      },
+      {
+        "id": "ISSUE-DB-2",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for db.py.",
+        "snippet": "# Missing test suite for db.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "config"
+    ],
+    "usedBy": [
+      "accounts",
+      "auth"
+    ],
+    "status": "legacy",
+    "summary": "db.py module managing db logic with 2 static analysis findings.",
+    "rawCode": "\"\"\"Database access layer for banking.\"\"\"\nimport config\n\ndef find_account(acc_id: str):\n    # Vulnerability: SQL Injection via f-string\n    query = f\"SELECT * FROM accounts WHERE acc_num='{acc_id}'\"\n    return {\"query\": query, \"account\": acc_id}\n",
+    "aiExplanation": "Analysis of db.py completed with 2 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:57:11.063502Z"
+  },
+  {
+    "id": "interest",
+    "name": "interest.py",
+    "path": "interest.py",
+    "loc": 8,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 27,
+    "riskLevel": "low",
+    "issues": [
+      {
+        "id": "ISSUE-INTEREST-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for interest.py.",
+        "snippet": "# Missing test suite for interest.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "interest.py module managing interest logic with 1 static analysis findings.",
+    "rawCode": "\"\"\"Interest calculation engine (Standalone, no dependencies).\"\"\"\ndef calculate_interest(balance: float) -> float:\n    # Business Rule: Interest 3.5%/4.5% at 100000\n    if balance >= 100000:\n        rate = 0.045\n    else:\n        rate = 0.035\n    return balance * rate\n",
+    "aiExplanation": "Analysis of interest.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:57:11.063502Z"
+  },
+  {
+    "id": "statements",
+    "name": "statements.py",
+    "path": "statements.py",
+    "loc": 6,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 47,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-STATEMENTS-1",
+        "type": "sql_injection",
+        "severity": "critical",
+        "line": 6,
+        "description": "SQL query constructed via dynamic string formatting/interpolation exposes database to injection attacks.",
+        "snippet": "query = \"SELECT * FROM tx WHERE acc='%s'\" % acc_id",
+        "remediation": "Use parameterized SQL queries with bind parameter placeholders.",
+        "cwe": "CWE-89"
+      },
+      {
+        "id": "ISSUE-STATEMENTS-2",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for statements.py.",
+        "snippet": "# Missing test suite for statements.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "transactions"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "statements.py module managing statements logic with 2 static analysis findings.",
+    "rawCode": "\"\"\"Statement generator for bank accounts.\"\"\"\nimport transactions\n\ndef statement(acc_id: str):\n    # Vulnerability: SQL Injection via % formatting\n    query = \"SELECT * FROM tx WHERE acc='%s'\" % acc_id\n    return {\"query\": query, \"acc\": acc_id}\n",
+    "aiExplanation": "Analysis of statements.py completed with 2 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:57:11.063502Z"
+  },
+  {
+    "id": "transactions",
+    "name": "transactions.py",
+    "path": "transactions.py",
+    "loc": 17,
+    "complexity": 4,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-TRANSACTIONS-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for transactions.py.",
+        "snippet": "# Missing test suite for transactions.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "accounts"
+    ],
+    "usedBy": [
+      "statements"
+    ],
+    "status": "legacy",
+    "summary": "transactions.py module managing transactions logic with 1 static analysis findings.",
+    "rawCode": "\"\"\"Transaction processing engine.\"\"\"\nfrom datetime import datetime\nimport accounts\n\ndef transfer_funds(amount: float, balance: float) -> float:\n    # Deprecated API: datetime.utcnow()\n    tx_time = datetime.utcnow()\n    \n    # Business Rule: Daily withdrawal limit 50000\n    if amount > 50000:\n        raise ValueError(\"Daily withdrawal limit exceeded: 50000 max\")\n        \n    # Business Rule: 0.5% transfer fee above 10000\n    fee = 0.0\n    if amount > 10000:\n        fee = amount * 0.005\n        \n    total_deduction = amount + fee\n    if balance - total_deduction < 1000:\n        raise ValueError(\"Transaction violates minimum balance requirement of 1000\")\n        \n    return balance - total_deduction\n",
+    "aiExplanation": "Analysis of transactions.py completed with 1 issues detected and cyclomatic complexity of 4.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:57:11.063502Z"
+  }
+]

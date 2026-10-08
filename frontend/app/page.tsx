@@ -134,7 +134,7 @@ export default function DashboardPage() {
             </div>
             <div className="max-w-xl mx-auto space-y-1">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                No codebase yet. Upload a .zip to start the analysis.
+                No project yet. Upload a codebase to begin.
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 ReCore AI decompiles Python legacy archives, maps dependency graphs, pinpoints SQL injections, and generates deterministic behavior test suites.
@@ -550,7 +550,7 @@ export default function DashboardPage() {
                     onClick={() => setFilterRisk(level)}
                     className={`px-3 py-1 rounded-lg uppercase text-[11px] font-semibold transition-all ${
                       filterRisk === level
-                        ? "bg-slate-300 dark:bg-slate-800 text-blue-700 dark:text-cyan-300 shadow-sm border border-slate-500 dark:border-slate-700"
+                        ? "bg-slate-300 dark:bg-slate-800 text-slate-900 dark:text-cyan-300 shadow-sm border border-slate-500 dark:border-slate-700 font-semibold"
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >

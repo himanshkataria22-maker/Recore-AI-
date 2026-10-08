@@ -182,7 +182,7 @@ export const UploadAnalysisModal: React.FC<UploadAnalysisModalProps> = ({
                   onClick={() => setActiveTab("zip")}
                   className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-all ${
                     activeTab === "zip"
-                      ? "bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-300 font-semibold shadow-xs"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-cyan-300 font-semibold shadow-xs"
                       : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
@@ -193,7 +193,7 @@ export const UploadAnalysisModal: React.FC<UploadAnalysisModalProps> = ({
                   onClick={() => setActiveTab("git")}
                   className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-all ${
                     activeTab === "git"
-                      ? "bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-300 font-semibold shadow-xs"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-cyan-300 font-semibold shadow-xs"
                       : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >

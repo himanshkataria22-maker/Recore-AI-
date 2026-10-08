@@ -102,7 +102,7 @@ def calculate_module_risk(
 class CodebaseAnalyzer:
     def __init__(self, codebase_path: str):
         self.codebase_path = os.path.abspath(codebase_path)
-        self.cache_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cache")
+        self.cache_dir = os.path.join(self.codebase_path, ".cache")
         os.makedirs(self.cache_dir, exist_ok=True)
         self.cache_file = os.path.join(self.cache_dir, "analysis.json")
 
@@ -156,7 +156,7 @@ class CodebaseAnalyzer:
             complexity_info = ComplexityAnalyzer.analyze_complexity(code_str)
             complexity_val = int(complexity_info.get("max_complexity", 1))
             
-            # Check test presence (e.g. tests/test_<module>.py or audit_log having tests)
+            # Check test presence
             has_tests = False
             test_candidates = [
                 os.path.join(self.codebase_path, f"test_{mod_id}.py"),
@@ -166,8 +166,6 @@ class CodebaseAnalyzer:
                 if os.path.exists(tc):
                     has_tests = True
                     break
-            if mod_id == "audit_log":
-                has_tests = True
                 
             issues = SecurityAnalyzer.analyze_module(filepath, code_str, has_tests, complexity_info)
             
@@ -180,11 +178,11 @@ class CodebaseAnalyzer:
                 "loc": parser.loc,
                 "complexity": complexity_val,
                 "has_tests": has_tests,
-                "test_coverage": 100 if has_tests and mod_id == "audit_log" else (35 if has_tests else 0),
+                "test_coverage": 35 if has_tests else 0,
                 "issues": issues,
                 "depends_on": internal_deps,
                 "raw_code": code_str,
-                "status": "modernized" if mod_id == "audit_log" else "legacy"
+                "status": "legacy"
             })
 
         # Pass 2: Calculate reverse used_by dependencies
@@ -207,12 +205,6 @@ class CodebaseAnalyzer:
                 m["has_tests"],
                 len(used_by)
             )
-            
-            # Special override for already modernized audit_log
-            if mod_id == "audit_log":
-                risk_score = 12
-                risk_level = "low"
-                m["issues"] = []
 
             summary = f"{m['name']} module managing {mod_id.replace('_', ' ')} logic with {len(m['issues'])} static analysis findings."
             
@@ -243,7 +235,10 @@ class CodebaseAnalyzer:
             modules.append(mod)
 
         # Cache results
-        with open(self.cache_file, "w", encoding="utf-8") as f:
-            json.dump([m.model_dump(by_alias=True) for m in modules], f, indent=2)
+        try:
+            with open(self.cache_file, "w", encoding="utf-8") as f:
+                json.dump([m.model_dump(by_alias=True) for m in modules], f, indent=2)
+        except Exception:
+            pass
 
         return modules

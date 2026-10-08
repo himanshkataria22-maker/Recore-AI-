@@ -6,8 +6,8 @@
   },
   "config": {
     "target": "modernized",
-    "lastUpdated": "2026-10-04T07:25:25.255095Z",
-    "adapterPath": "C:\\Users\\Dell\\Desktop\\recore-ai\\backend\\adapters\\config_adapter.py"
+    "lastUpdated": "2026-10-08T08:01:31.875972Z",
+    "adapterPath": "C:\\Users\\hp\\Documents\\Recore-AI-\\backend\\adapters\\config_adapter.py"
   },
   "billing": {
     "target": "modernized",
@@ -16,7 +16,7 @@
   },
   "auth": {
     "target": "modernized",
-    "lastUpdated": "2026-10-07T08:37:53.634478Z",
+    "lastUpdated": "2026-10-08T08:01:09.410103Z",
     "adapterPath": "C:\\Users\\hp\\Documents\\Recore-AI-\\backend\\adapters\\auth_adapter.py"
   },
   "invoice": {
@@ -28,5 +28,10 @@
     "target": "modernized",
     "lastUpdated": "2026-10-07T07:39:34.424621Z",
     "adapterPath": "C:\\Users\\hp\\Documents\\Recore-AI-\\backend\\adapters\\pricing_adapter.py"
+  },
+  "report": {
+    "target": "modernized",
+    "lastUpdated": "2026-10-08T06:51:54.451887Z",
+    "adapterPath": "C:\\Users\\hp\\Documents\\Recore-AI-\\backend\\adapters\\report_adapter.py"
   }
 }

@@ -1,0 +1,12 @@
+{
+  "projectId": "bank-legacy-7mtczg",
+  "name": "bank_legacy",
+  "status": "done",
+  "progress": 100,
+  "filesExtracted": 7,
+  "filesSkipped": 0,
+  "createdAt": "2026-10-08T07:52:53.566150Z",
+  "error": null,
+  "moduleCount": 7,
+  "completedAt": "2026-10-08T07:52:53.583719Z"
+}

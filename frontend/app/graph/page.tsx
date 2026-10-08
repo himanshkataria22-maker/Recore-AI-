@@ -119,6 +119,11 @@ export default function DependencyGraphPage() {
           setSelectedModuleId(highestRisk?.id || rawModules[0].id);
         }
 
+        // Filter modules based on risk filter
+        const filteredModules = riskFilter === "all"
+          ? rawModules
+          : rawModules.filter((m) => m.riskLevel === riskFilter);
+
         // Dynamic position generator based on grid layout
         const positions: Record<string, { x: number; y: number }> = {
           db_utils: { x: 300, y: 50 },
@@ -135,7 +140,7 @@ export default function DependencyGraphPage() {
           export_service: { x: 400, y: 820 },
         };
 
-        const initialNodes: Node[] = rawModules.map((m, idx) => ({
+        const initialNodes: Node[] = filteredModules.map((m, idx) => ({
           id: m.id,
           type: "customModule",
           position: positions[m.id] || { x: (idx % 3) * 300 + 100, y: Math.floor(idx / 3) * 200 + 100 },
@@ -157,9 +162,12 @@ export default function DependencyGraphPage() {
         }));
 
         const initialEdges: Edge[] = [];
-        rawModules.forEach((mod) => {
+        filteredModules.forEach((mod) => {
           mod.dependsOn.forEach((depId) => {
-            const depModule = rawModules.find((m) => m.id === depId);
+            // Only show edge if both modules are in filtered list
+            if (!filteredModules.find((m) => m.id === depId)) return;
+            
+            const depModule = filteredModules.find((m) => m.id === depId);
             const isCritical = mod.riskScore > 80 || (depModule?.riskScore ?? 0) > 80;
             initialEdges.push({
               id: `edge-${mod.id}->${depId}`,
@@ -188,7 +196,7 @@ export default function DependencyGraphPage() {
       }
     }
     loadGraph();
-  }, [hasProject, project, setNodes, setEdges]);
+  }, [hasProject, project, riskFilter, setNodes, setEdges]);
 
   // Update node highlight states whenever selectedModuleId or blastRadius changes
   useEffect(() => {
@@ -274,6 +282,56 @@ export default function DependencyGraphPage() {
     );
   };
 
+  if (!hasProject) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-300 dark:border-slate-800">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                <GitFork className="w-6 h-6 text-blue-600 dark:text-cyan-400" />
+                AST Dependency & Blast Radius
+              </h1>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                Select any Python module to compute its downstream impact radius in real-time.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20"
+            >
+              Upload Codebase (.zip)
+            </button>
+          </div>
+
+          <div className="p-12 text-center rounded-3xl bg-slate-100/60 dark:bg-slate-900/40 border border-dashed border-slate-300 dark:border-slate-800 space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center mx-auto border border-cyan-500/20">
+              <GitFork className="w-7 h-7" />
+            </div>
+            <div className="max-w-md mx-auto space-y-1">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                No project yet. Upload a codebase to begin.
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Upload a Python codebase archive to inspect module dependencies, flow graphs, and blast radius impact.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20"
+            >
+              Upload Codebase (.zip)
+            </button>
+          </div>
+        </div>
+        <UploadAnalysisModal
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+        />
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -303,7 +361,7 @@ export default function DependencyGraphPage() {
                   onClick={() => setRiskFilter(r)}
                   className={`px-3 py-1 rounded-lg uppercase text-[10px] font-semibold transition-colors ${
                     riskFilter === r
-                      ? "bg-slate-800 text-blue-700 dark:text-cyan-300 border border-slate-500 dark:border-slate-700"
+                      ? "bg-slate-300 dark:bg-slate-800 text-slate-900 dark:text-cyan-300 border border-slate-500 dark:border-slate-700 font-semibold"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >

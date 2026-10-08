@@ -34,13 +34,13 @@ export const SeverityBadge: React.FC<SeverityBadgeProps> = ({
   const getStyle = () => {
     switch (severity) {
       case "critical":
-        return "bg-red-500/10 text-red-400 border-red-500/30";
+        return "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30";
       case "high":
-        return "bg-orange-500/10 text-orange-400 border-orange-500/30";
+        return "bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30";
       case "medium":
-        return "bg-amber-500/10 text-amber-400 border-amber-500/30";
+        return "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30";
       case "low":
-        return "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+        return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30";
     }
   };
 

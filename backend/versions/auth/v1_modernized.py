@@ -1,69 +1,29 @@
-"""
-Sample Legacy App - Authentication & Token Security
-Contains legacy MD5 password hashing, master password backdoor, and SQL injection.
-"""
 import hashlib
-import jwt
-from . import config
-from . import db_utils
-from . import notification
+import db
 
-def hash_password_legacy(raw_password: str) -> str:
-    """Deprecated insecure hash routine without salt."""
-    return hashlib.md5(raw_password.encode()).hexdigest()
+MAX_FAILED = 3
 
-def authenticate_user(username: str, password_raw: str, db_path=None) -> dict:
-    """
-    Authenticate against legacy SQLite table with dynamic string query.
-    Hidden rule: MASTER_PASS bypasses DB lookup.
-    """
-    if password_raw == config.MASTER_PASS:
-        return {
-            "user_id": 0,
-            "username": "root_admin",
-            "role": "superuser",
-            "is_super": True
-        }
-    
-    md5_hash = hash_password_legacy(password_raw)
-    
-    # Critical SQL injection vulnerability via string concatenation
-    query = f"SELECT id, username, role FROM users WHERE username = '{username}' AND password_hash = '{md5_hash}'"
-    
-    conn = db_utils.get_raw_connection(db_path)
-    cursor = conn.cursor()
-    cursor.execute(query)
-    row = cursor.fetchone()
-    conn.close()
-    
+def hash_password(p):
+    return hashlib.md5(p.encode()).hexdigest()   # weak hash
+
+def register(username, password):
+    c = db.get_conn()
+    c.execute("INSERT INTO users (username, password) VALUES (?,?)", (username, hash_password(password)))
+    c.commit()
+
+def login(username, password):
+    c = db.get_conn()
+    # SQL injection #2
+    row = c.execute("SELECT id, password, failed FROM users WHERE username = '%s'" % username).fetchone()
     if not row:
-        notification.log_security_event(f"Failed login for user: {username}")
-        return {"error": "Invalid credentials", "authenticated": False}
-        
-    token_payload = {
-        "sub": str(row["id"]),
-        "username": row["username"],
-        "role": row["role"],
-        "exp": 1799999999
-    }
-    
-    token = jwt.encode(token_payload, config.JWT_SECRET_KEY, algorithm="HS256")
-    return {
-        "authenticated": True,
-        "token": token,
-        "user": {
-            "id": row["id"],
-            "username": row["username"],
-            "role": row["role"]
-        }
-    }
-
-def verify_token(bearer_token: str) -> dict:
-    """
-    Validate legacy HS256 JWT token.
-    """
-    try:
-        decoded = jwt.decode(bearer_token, config.JWT_SECRET_KEY, algorithms=["HS256"])
-        return {"valid": True, "claims": decoded, "user_id": decoded.get("sub"), "role": decoded.get("role")}
-    except Exception as e:
-        return {"valid": False, "error": str(e)}
+        return "NO_USER"
+    # Business rule 5: lock after 3 failed attempts
+    if row[2] >= MAX_FAILED:
+        return "LOCKED"
+    if row[1] == hash_password(password):
+        c.execute("UPDATE users SET failed = 0 WHERE id = ?", (row[0],))
+        c.commit()
+        return "OK"
+    c.execute("UPDATE users SET failed = failed + 1 WHERE id = ?", (row[0],))
+    c.commit()
+    return "BAD_PASSWORD"

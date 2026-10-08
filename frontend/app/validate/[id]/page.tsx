@@ -77,18 +77,25 @@ export default function ValidationProofPage() {
 
   useEffect(() => {
     async function loadValidationData() {
-      if (!hasProject) {
+      if (!hasProject || !project) {
         setLoading(false);
         setValidation(null);
         setAllModules([]);
         setRoute(null);
         return;
       }
+      const targetModuleId = (params?.id as string) || project.modules[0]?.id;
+      if (!targetModuleId) {
+        setLoading(false);
+        setValidation(null);
+        return;
+      }
+
       try {
         const [valData, modsData, routeData] = await Promise.all([
-          getValidationRun(moduleId),
-          getModules().catch(() => []),
-          getModuleRoute(moduleId).catch(() => null),
+          getValidationRun(project.id, targetModuleId).catch(() => null),
+          getModules(project.id).catch(() => []),
+          getModuleRoute(project.id, targetModuleId).catch(() => null),
         ]);
         setValidation(valData);
         setAllModules(modsData);
@@ -100,15 +107,15 @@ export default function ValidationProofPage() {
       }
     }
     loadValidationData();
-  }, [moduleId, hasProject]);
+  }, [params?.id, hasProject, project]);
 
   const handleModernize = async () => {
     setIsModernizing(true);
     try {
       toast.info("Modernization Started", `Generating test matrix & synthesizing modern version for ${moduleId}...`);
-      const run = await modernizeModule(moduleId);
+      const run = await modernizeModule(project?.id || "demo-project", moduleId);
       setValidation(run);
-      const updatedRoute = await getModuleRoute(moduleId).catch(() => null);
+      const updatedRoute = await getModuleRoute(project?.id || "demo-project", moduleId).catch(() => null);
       if (updatedRoute) setRoute(updatedRoute);
       toast.success(
         "Modernization Complete",
@@ -125,7 +132,7 @@ export default function ValidationProofPage() {
     if (!route || route.target === newTarget || isTogglingRoute) return;
     setIsTogglingRoute(true);
     try {
-      const res = await updateModuleRoute(moduleId, newTarget);
+      const res = await updateModuleRoute(project?.id || "demo-project", moduleId, newTarget);
       setRoute(res);
       toast.success(
         "Traffic Route Updated",
@@ -142,7 +149,7 @@ export default function ValidationProofPage() {
     setIsRunningShadow(true);
     try {
       toast.info("Running Shadow Comparison", "Executing golden master cases concurrently through legacy (v0) and modernized (v1)...");
-      const res = await runShadowComparison(moduleId);
+      const res = await runShadowComparison(project?.id || "demo-project", moduleId);
       setShadowResult(res);
       toast.success(
         "Shadow Comparison Complete",
@@ -159,7 +166,7 @@ export default function ValidationProofPage() {
     if (!validation) return;
     setIsDownloadingReport(true);
     try {
-      await downloadAuditReport(validation.moduleId);
+      await downloadAuditReport(project?.id || "demo-project", validation.moduleId);
       toast.success("Audit Report Downloaded", `Saved ${validation.moduleId}_modernization_audit_report.md`);
     } catch (err) {
       toast.error("Download Failed", "Could not generate audit report.");
@@ -173,6 +180,7 @@ export default function ValidationProofPage() {
     setIsSubmitting(true);
     try {
       const res = await submitApproval(
+        project?.id || "demo-project",
         validation.moduleId,
         status,
         approvalNotes || (status === "approved" ? "Verified behavioral test parity and security audit." : "Requires additional edge-case testing."),
@@ -209,7 +217,7 @@ export default function ValidationProofPage() {
     if (!validation) return;
     setIsRollingBack(true);
     try {
-      const res = await rollbackModule(validation.moduleId);
+      const res = await rollbackModule(project?.id || "demo-project", validation.moduleId);
       toast.info("Rollback Executed", res.message);
       setRoute({
         moduleId: validation.moduleId,
@@ -247,7 +255,7 @@ export default function ValidationProofPage() {
         <div className="text-center py-20 space-y-4">
           <AlertTriangle className="w-12 h-12 text-rose-500 dark:text-rose-400 mx-auto" />
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-            {!hasProject ? "No Codebase Uploaded Yet" : "Validation Proof Not Found"}
+            {!hasProject ? "No project yet. Upload a codebase to begin." : "Validation Proof Not Found"}
           </h2>
           <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
             {!hasProject
@@ -284,6 +292,23 @@ export default function ValidationProofPage() {
   }
 
   const otherModules = allModules.filter((m) => m.id !== moduleId);
+  
+  // Determine if approval button should be enabled
+  const canApprove = 
+    validation && 
+    validation.testsTotal > 0 && 
+    validation.testsPassed === validation.testsTotal &&
+    validation.approvalStatus === "pending";
+  
+  const approveDisabledReason = !validation 
+    ? "No validation run" 
+    : validation.testsTotal === 0 
+    ? "No tests run"
+    : validation.testsPassed < validation.testsTotal
+    ? `${validation.testsTotal - validation.testsPassed} test(s) failed`
+    : validation.approvalStatus === "approved"
+    ? "Already approved"
+    : null;
 
   return (
     <AppLayout>

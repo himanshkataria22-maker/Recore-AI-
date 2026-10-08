@@ -126,7 +126,7 @@ export const TestRunner: React.FC<TestRunnerProps> = ({
             onClick={() => setSelectedFilter(f)}
             className={`px-2.5 py-1 rounded-md text-xs font-medium uppercase tracking-wider transition-colors ${
               selectedFilter === f
-                ? "bg-slate-200 dark:bg-slate-800 text-cyan-700 dark:text-cyan-300 border border-slate-300 dark:border-slate-700"
+                ? "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-cyan-300 border border-slate-300 dark:border-slate-700 font-semibold"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
@@ -140,8 +140,9 @@ export const TestRunner: React.FC<TestRunnerProps> = ({
         {/* Test List */}
         <div className="lg:col-span-6 space-y-2 max-h-[360px] overflow-y-auto pr-1">
           {filteredTests.map((tc, idx) => {
-            const isCompleted = completedCount > idx || !isRunning;
-            const isCurrentlyRunning = activeTestIndex === idx;
+            const allTestsIndex = testCases.findIndex(t => t.id === tc.id);
+            const isCompleted = completedCount > allTestsIndex || !isRunning;
+            const isCurrentlyRunning = activeTestIndex === allTestsIndex;
 
             return (
               <motion.div

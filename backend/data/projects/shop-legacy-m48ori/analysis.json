@@ -1,0 +1,328 @@
+[
+  {
+    "id": "auth",
+    "name": "auth.py",
+    "path": "auth.py",
+    "loc": 13,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 33,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-AUTH-1",
+        "type": "deprecated_api",
+        "severity": "medium",
+        "line": 11,
+        "description": "Insecure legacy MD5 hashing routine used without salt or key stretching.",
+        "snippet": "pass_hash = hashlib.md5(passw.encode('utf-8')).hexdigest()",
+        "remediation": "Migrate password hashing to Argon2id or bcrypt with appropriate work factors.",
+        "cwe": "CWE-328"
+      },
+      {
+        "id": "ISSUE-AUTH-2",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for auth.py.",
+        "snippet": "# Missing test suite for auth.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db_utils"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "auth.py module managing auth logic with 2 static analysis findings.",
+    "rawCode": "\"\"\"User authentication module.\"\"\"\nimport hashlib\nimport db_utils\n\ndef login(username: str, passw: str, failed_attempts: int = 0):\n    # Business Rule: Lock after 3 failed logins\n    if failed_attempts >= 3:\n        return {\"status\": \"locked\", \"message\": \"Account locked after 3 failed logins\"}\n    \n    # Vulnerability: MD5 Hash\n    pass_hash = hashlib.md5(passw.encode('utf-8')).hexdigest()\n    \n    # Vulnerability: SQL Injection via string concatenation\n    query = \"SELECT * FROM users WHERE user='\" + username + \"' AND pass='\" + pass_hash + \"'\"\n    db_utils.execute_parameterized(\"SELECT * FROM users WHERE user=?\", (username,))\n    \n    return {\"status\": \"success\", \"user\": username, \"query\": query}\n",
+    "aiExplanation": "Analysis of auth.py completed with 2 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:51:47.626334Z"
+  },
+  {
+    "id": "billing",
+    "name": "billing.py",
+    "path": "billing.py",
+    "loc": 11,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-BILLING-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for billing.py.",
+        "snippet": "# Missing test suite for billing.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db_utils",
+      "discounts",
+      "pricing"
+    ],
+    "usedBy": [
+      "invoice"
+    ],
+    "status": "legacy",
+    "summary": "billing.py module managing billing logic with 1 static analysis findings.",
+    "rawCode": "\"\"\"Billing processing module.\"\"\"\nimport pricing\nimport discounts\nimport db_utils\n\ndef calculate_total(subtotal: float) -> float:\n    # Business Rule: GST 18% on discounted amount\n    disc_subtotal = discounts.apply_bulk_discount(subtotal)\n    shipping = pricing.calculate_shipping(disc_subtotal)\n    gst = disc_subtotal * 0.18\n    grand_total = disc_subtotal + shipping + gst\n    return grand_total\n",
+    "aiExplanation": "Analysis of billing.py completed with 1 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:51:47.626334Z"
+  },
+  {
+    "id": "config",
+    "name": "config.py",
+    "path": "config.py",
+    "loc": 5,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 52,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-CONFIG-1",
+        "type": "hardcoded_secret",
+        "severity": "critical",
+        "line": 2,
+        "description": "Hardcoded live Stripe API key detected in source code.",
+        "snippet": "API_KEY = \"sk_live_998877665544332211\"",
+        "remediation": "Extract credentials to KMS, AWS Secrets Manager, or environment variables using Pydantic BaseSettings.",
+        "cwe": "CWE-798"
+      },
+      {
+        "id": "ISSUE-CONFIG-2",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for config.py.",
+        "snippet": "# Missing test suite for config.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [],
+    "usedBy": [
+      "db_utils",
+      "pricing"
+    ],
+    "status": "legacy",
+    "summary": "config.py module managing config logic with 2 static analysis findings.",
+    "rawCode": "\"\"\"Configuration module containing application settings and credentials.\"\"\"\nAPI_KEY = \"sk_live_998877665544332211\"\nDB_PASSWORD = \"super_secret_db_pass_2026\"\nAPP_NAME = \"ShopLegacyService\"\nDEBUG = False\n",
+    "aiExplanation": "Analysis of config.py completed with 2 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:51:47.626334Z"
+  },
+  {
+    "id": "db_utils",
+    "name": "db_utils.py",
+    "path": "db_utils.py",
+    "loc": 11,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 57,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-DB_UTILS-1",
+        "type": "sql_injection",
+        "severity": "critical",
+        "line": 9,
+        "description": "SQL query constructed via dynamic string formatting/interpolation exposes database to injection attacks.",
+        "snippet": "query = f\"SELECT * FROM customers WHERE id='{cust_id}'\"",
+        "remediation": "Use parameterized SQL queries with bind parameter placeholders.",
+        "cwe": "CWE-89"
+      },
+      {
+        "id": "ISSUE-DB_UTILS-2",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for db_utils.py.",
+        "snippet": "# Missing test suite for db_utils.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "config"
+    ],
+    "usedBy": [
+      "auth",
+      "billing",
+      "report"
+    ],
+    "status": "legacy",
+    "summary": "db_utils.py module managing db utils logic with 2 static analysis findings.",
+    "rawCode": "\"\"\"Database utility functions.\"\"\"\nimport config\n\ndef get_connection():\n    return f\"Connecting to DB with pass {config.DB_PASSWORD}\"\n\ndef find_customer(cust_id: str):\n    # Vulnerability: SQL Injection via f-string\n    query = f\"SELECT * FROM customers WHERE id='{cust_id}'\"\n    return {\"query\": query, \"customer_id\": cust_id}\n\ndef execute_parameterized(query_str: str, params: tuple):\n    # Safe query execution\n    return {\"query\": query_str, \"params\": params}\n",
+    "aiExplanation": "Analysis of db_utils.py completed with 2 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:51:47.626334Z"
+  },
+  {
+    "id": "discounts",
+    "name": "discounts.py",
+    "path": "discounts.py",
+    "loc": 6,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-DISCOUNTS-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for discounts.py.",
+        "snippet": "# Missing test suite for discounts.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [],
+    "usedBy": [
+      "billing"
+    ],
+    "status": "legacy",
+    "summary": "discounts.py module managing discounts logic with 1 static analysis findings.",
+    "rawCode": "\"\"\"Discount calculation rules.\"\"\"\ndef apply_bulk_discount(subtotal: float) -> float:\n    # Business Rule: Bulk discount 10% above 1000\n    if subtotal > 1000:\n        return subtotal * 0.90\n    return subtotal\n",
+    "aiExplanation": "Analysis of discounts.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:51:47.626334Z"
+  },
+  {
+    "id": "invoice",
+    "name": "invoice.py",
+    "path": "invoice.py",
+    "loc": 9,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-INVOICE-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for invoice.py.",
+        "snippet": "# Missing test suite for invoice.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "billing"
+    ],
+    "usedBy": [
+      "report"
+    ],
+    "status": "legacy",
+    "summary": "invoice.py module managing invoice logic with 1 static analysis findings.",
+    "rawCode": "\"\"\"Invoice generation module.\"\"\"\nimport billing\n\ndef generate_invoice(order_id: str, items_subtotal: float):\n    total = billing.calculate_total(items_subtotal)\n    return {\n        \"order_id\": order_id,\n        \"subtotal\": items_subtotal,\n        \"grand_total\": total\n    }\n",
+    "aiExplanation": "Analysis of invoice.py completed with 1 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:51:47.626334Z"
+  },
+  {
+    "id": "pricing",
+    "name": "pricing.py",
+    "path": "pricing.py",
+    "loc": 7,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-PRICING-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for pricing.py.",
+        "snippet": "# Missing test suite for pricing.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "config"
+    ],
+    "usedBy": [
+      "billing"
+    ],
+    "status": "legacy",
+    "summary": "pricing.py module managing pricing logic with 1 static analysis findings.",
+    "rawCode": "\"\"\"Pricing and shipping rules.\"\"\"\nimport config\n\ndef calculate_shipping(subtotal: float) -> float:\n    # Business Rule: Free shipping above 500 else 50\n    if subtotal > 500:\n        return 0.0\n    return 50.0\n",
+    "aiExplanation": "Analysis of pricing.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:51:47.626334Z"
+  },
+  {
+    "id": "report",
+    "name": "report.py",
+    "path": "report.py",
+    "loc": 10,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 47,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-REPORT-1",
+        "type": "sql_injection",
+        "severity": "critical",
+        "line": 7,
+        "description": "SQL query constructed via dynamic string formatting/interpolation exposes database to injection attacks.",
+        "snippet": "query = \"SELECT * FROM orders WHERE city='%s'\" % city",
+        "remediation": "Use parameterized SQL queries with bind parameter placeholders.",
+        "cwe": "CWE-89"
+      },
+      {
+        "id": "ISSUE-REPORT-2",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for report.py.",
+        "snippet": "# Missing test suite for report.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db_utils",
+      "invoice"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "report.py module managing report logic with 2 static analysis findings.",
+    "rawCode": "\"\"\"Reporting service module.\"\"\"\nimport invoice\nimport db_utils\n\ndef orders_by_city(city: str):\n    # Vulnerability: SQL Injection via % formatting\n    query = \"SELECT * FROM orders WHERE city='%s'\" % city\n    return {\"query\": query, \"city\": city}\n\ndef generate_summary(order_id: str, subtotal: float):\n    inv = invoice.generate_invoice(order_id, subtotal)\n    return {\"report_id\": f\"REP-{order_id}\", \"invoice\": inv}\n",
+    "aiExplanation": "Analysis of report.py completed with 2 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:51:47.626334Z"
+  }
+]

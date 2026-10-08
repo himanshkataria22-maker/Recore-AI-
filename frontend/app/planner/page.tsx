@@ -53,8 +53,10 @@ export default function ModernizationPlannerPage() {
       }
 
       try {
-        const planData = project.plan || (await getModernizationPlan());
-        const expData = await getPlanExplanation().catch(() => null);
+        const [planData, expData] = await Promise.all([
+          getModernizationPlan(project.id),
+          getPlanExplanation(project.id).catch(() => null),
+        ]);
         setPlan(planData);
         setExplanation(expData);
         if (planData.order.length > 0) {
@@ -97,7 +99,7 @@ export default function ModernizationPlannerPage() {
             </div>
             <div className="max-w-md mx-auto space-y-1">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                No Migration Plan Available
+                No project yet. Upload a codebase to begin.
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400">
                 Upload a Python codebase archive to generate an optimized step-by-step modernization DAG sequence with risk-vs-value priority scatter charts.

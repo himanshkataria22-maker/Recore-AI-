@@ -1,140 +1,57 @@
 {
-  "billing": {
-    "moduleId": "billing",
-    "moduleName": "billing.py",
-    "runId": "VAL-RUN-20261003-8821",
-    "timestamp": "2026-10-03T11:45:00Z",
-    "testsTotal": 47,
-    "testsPassed": 47,
-    "securityIssuesFixed": 3,
-    "behaviorPreserved": true,
-    "preservationScore": 100,
-    "diff": {
-      "beforeLoc": 780,
-      "afterLoc": 240,
-      "complexityReduction": "42 → 6 (-85.7%)",
-      "before": "# LEGACY BILLING ENGINE (Python 2.7 / 3.6 legacy)\nimport sys\nfrom decimal import Decimal\nfrom app.core import auth, db_utils\nfrom app.services import discounts, tax_calculator, payment_gateway, subscription\n\ndef calculate_monthly_billing_cycle(customer_id: str, cycle_date: str, dry_run: bool = False):\n    conn = db_utils.get_raw_connection()\n    cursor = conn.cursor()\n    \n    # Vulnerable batch query with string interpolation\n    cursor.execute(\"SELECT id, plan_code, tier, created_at FROM accounts WHERE customer_id = '%s'\" % customer_id)\n    account = cursor.fetchone()\n    if not account:\n        raise ValueError(\"Customer account not found\")\n        \n    acc_id, plan_code, tier, created_at = account\n    \n    # Deeply nested legacy pricing rules (Cyclomatic Complexity = 42)\n    subtotal = 0.0\n    if plan_code == 'ENTERPRISE_CUSTOM':\n        if tier == 'VIP_GOLD':\n            subtotal = 4999.00\n        elif tier == 'VIP_PLATINUM':\n            subtotal = 8999.00\n        else:\n            subtotal = 2999.00\n    elif plan_code == 'GROWTH_TIER':\n        subtotal = 499.00\n    else:\n        subtotal = 99.00\n        \n    # Float rounding drift bug\n    discount_rate = discounts.get_customer_discount_multiplier(customer_id, plan_code)\n    subtotal = subtotal * (1.0 - discount_rate)\n    \n    tax_amt = tax_calculator.compute_regional_tax(subtotal, customer_id)\n    grand_total = subtotal + tax_amt\n    \n    if not dry_run and grand_total > 0:\n        tx_ref = payment_gateway.charge_stored_card(customer_id, grand_total)\n        return {\"status\": \"billed\", \"amount\": grand_total, \"tx\": tx_ref}\n        \n    return {\"status\": \"preview\", \"subtotal\": subtotal, \"tax\": tax_amt, \"total\": grand_total}",
-      "after": "# MODERNIZED BILLING ENGINE (FastAPI / Pydantic v2 / Async SQLAlchemy)\nfrom decimal import Decimal, ROUND_HALF_EVEN\nfrom typing import Optional\nfrom pydantic import BaseModel, Field\nfrom sqlalchemy.ext.asyncio import AsyncSession\nfrom app.domain.pricing import PricingStrategyEngine\nfrom app.domain.models import BillingResult, AccountSchema\nfrom app.services import discounts_service, tax_service, payment_service\n\nclass BillingCycleRequest(BaseModel):\n    customer_id: str = Field(..., max_length=64)\n    cycle_date: str\n    dry_run: bool = False\n\nasync def calculate_monthly_billing_cycle(\n    session: AsyncSession,\n    request: BillingCycleRequest,\n    pricing_engine: PricingStrategyEngine\n) -> BillingResult:\n    \"\"\"Modernized async billing computation with strict Decimal banker's rounding.\"\"\"\n    account: Optional[AccountSchema] = await pricing_engine.get_account_by_id(session, request.customer_id)\n    if not account:\n        raise ValueError(f\"Customer account '{request.customer_id}' not found\")\n        \n    # Pure domain calculation via strategy pattern\n    base_subtotal: Decimal = pricing_engine.resolve_base_plan_tier(account.plan_code, account.tier)\n    discount_multiplier: Decimal = await discounts_service.get_async_discount(session, request.customer_id, account.plan_code)\n    \n    discounted_subtotal: Decimal = (base_subtotal * (Decimal('1.00') - discount_multiplier)).quantize(Decimal('.01'), rounding=ROUND_HALF_EVEN)\n    tax_amount: Decimal = await tax_service.compute_async_tax(session, discounted_subtotal, request.customer_id)\n    grand_total: Decimal = discounted_subtotal + tax_amount\n    \n    if not request.dry_run and grand_total > Decimal('0.00'):\n        tx_ref = await payment_service.charge_async(request.customer_id, grand_total)\n        return BillingResult(status=\"billed\", amount=grand_total, tx_reference=tx_ref)\n        \n    return BillingResult(status=\"preview\", subtotal=discounted_subtotal, tax=tax_amount, total=grand_total)"
+  "demo-project": {
+    "discounts": {
+      "moduleId": "discounts",
+      "moduleName": "discounts.py",
+      "runId": "VAL-RUN-20261003-8821",
+      "timestamp": "2026-10-03T11:45:00Z",
+      "testsTotal": 12,
+      "testsPassed": 12,
+      "securityIssuesFixed": 1,
+      "behaviorPreserved": true,
+      "preservationScore": 100,
+      "diff": {
+        "beforeLoc": 150,
+        "afterLoc": 45,
+        "complexityReduction": "18 → 3 (-83.3%)",
+        "before": "# LEGACY DISCOUNTS\ndef apply_discount(customer_id, amount):\n    if customer_id in OLD_VIP_LIST:\n        return amount * 0.75\n    return amount * 0.9",
+        "after": "# MODERNIZED DISCOUNTS\nfrom pydantic import BaseModel\n\nclass DiscountRequest(BaseModel):\n    customer_id: str\n    amount: float\n\nasync def apply_discount(request: DiscountRequest) -> float:\n    multiplier = await get_async_discount(request.customer_id)\n    return Decimal(request.amount) * multiplier"
+      },
+      "testCases": [
+        {"id": "TC-01", "name": "VIP customer 25% discount", "type": "invariant", "status": "passed", "durationMs": 12, "assertion": "assert apply_discount('vip_001', 100) == 75", "inputSummary": "VIP customer, $100", "outputSummary": "$75.00"},
+        {"id": "TC-02", "name": "Regular customer 10% discount", "type": "regression", "status": "passed", "durationMs": 10, "assertion": "assert apply_discount('regular', 100) == 90", "inputSummary": "Regular customer, $100", "outputSummary": "$90.00"}
+      ],
+      "approvalStatus": "pending",
+      "approvalNotes": null,
+      "approvedBy": null,
+      "approvedAt": null
     },
-    "testCases": [
-      {
-        "id": "TC-01",
-        "name": "Enterprise VIP Platinum flat rate preservation ($8,999)",
-        "type": "invariant",
-        "status": "passed",
-        "durationMs": 42,
-        "assertion": "assert res.total == Decimal('8999.00')",
-        "inputSummary": "Plan: ENTERPRISE_CUSTOM, Tier: VIP_PLATINUM",
-        "outputSummary": "Output: $8,999.00 (Exact parity with legacy output)"
+    "billing": {
+      "moduleId": "billing",
+      "moduleName": "billing.py",
+      "runId": "VAL-RUN-20261003-9922",
+      "timestamp": "2026-10-03T12:00:00Z",
+      "testsTotal": 47,
+      "testsPassed": 47,
+      "securityIssuesFixed": 3,
+      "behaviorPreserved": true,
+      "preservationScore": 100,
+      "diff": {
+        "beforeLoc": 780,
+        "afterLoc": 240,
+        "complexityReduction": "42 → 6 (-85.7%)",
+        "before": "# LEGACY BILLING ENGINE\nimport sys\nfrom decimal import Decimal\n\ndef calculate_monthly_billing(customer_id: str, cycle_date: str):\n    # Vulnerable batch query with string interpolation\n    query = f\"SELECT * FROM accounts WHERE id = '{customer_id}'\"\n    cursor.execute(query)\n    # ... rest of legacy code",
+        "after": "# MODERNIZED BILLING ENGINE\nfrom pydantic import BaseModel\nfrom sqlalchemy.ext.asyncio import AsyncSession\n\nclass BillingRequest(BaseModel):\n    customer_id: str\n    cycle_date: str\n\nasync def calculate_monthly_billing(session: AsyncSession, request: BillingRequest):\n    \"\"\"Modernized async billing with Decimal precision.\"\"\"\n    account = await get_account_by_id(session, request.customer_id)\n    if not account:\n        raise ValueError(f\"Account '{request.customer_id}' not found\")\n    # ... modernized code"
       },
-      {
-        "id": "TC-02",
-        "name": "Grandfathered 2018 user 25% discount preservation",
-        "type": "regression",
-        "status": "passed",
-        "durationMs": 38,
-        "assertion": "assert res.discount_applied == Decimal('0.25')",
-        "inputSummary": "Account created: 2018-04-12, Plan: GROWTH_TIER ($499.00)",
-        "outputSummary": "Output: $374.25 (Legacy exact match)"
-      },
-      {
-        "id": "TC-03",
-        "name": "EU B2B Reverse Charge VAT 0% exemption",
-        "type": "edge_case",
-        "status": "passed",
-        "durationMs": 29,
-        "assertion": "assert res.tax == Decimal('0.00')",
-        "inputSummary": "Region: DE, VAT: DE998124912",
-        "outputSummary": "Output: Tax $0.00 (Zero-rated reverse charge)"
-      },
-      {
-        "id": "TC-04",
-        "name": "SQL Injection fuzzing on customer_id parameter",
-        "type": "security",
-        "status": "passed",
-        "durationMs": 55,
-        "assertion": "assert sanitize_injection_check(\"' OR '1'='1\") == SafeException",
-        "inputSummary": "Payload: ' OR '1'='1' --",
-        "outputSummary": "Result: Safely rejected by Pydantic validator with 422 Unprocessable Entity"
-      },
-      {
-        "id": "TC-05",
-        "name": "Sub-cent Banker's Rounding parity check",
-        "type": "invariant",
-        "status": "passed",
-        "durationMs": 31,
-        "assertion": "assert res.subtotal == Decimal('49.995').quantize(Decimal('.01'))",
-        "inputSummary": "Base: $99.99 * 50% discount",
-        "outputSummary": "Output: $50.00 (Eliminates $0.01 ledger drift)"
-      },
-      {
-        "id": "TC-06",
-        "name": "Dry run preview mode isolation test",
-        "type": "regression",
-        "status": "passed",
-        "durationMs": 24,
-        "assertion": "assert mock_gateway.charge_call_count == 0",
-        "inputSummary": "DryRun: True",
-        "outputSummary": "Payment gateway was never invoked"
-      },
-      {
-        "id": "TC-07",
-        "name": "Zero-value invoice bypass test",
-        "type": "edge_case",
-        "status": "passed",
-        "durationMs": 19,
-        "assertion": "assert res.status == 'preview' and res.amount == Decimal('0.00')",
-        "inputSummary": "Plan: FREE_TIER, Promo: 100% OFF",
-        "outputSummary": "Output: Total $0.00 without triggering stripe charge"
-      }
-    ],
-    "approvalStatus": "pending",
-    "approvalNotes": "Ready for engineering lead review. All 47 business regression tests green.",
-    "approvedBy": null,
-    "approvedAt": null
-  },
-  "auth": {
-    "moduleId": "auth",
-    "moduleName": "auth.py",
-    "runId": "VAL-RUN-20261003-7714",
-    "timestamp": "2026-10-03T10:30:00Z",
-    "testsTotal": 32,
-    "testsPassed": 32,
-    "securityIssuesFixed": 4,
-    "behaviorPreserved": true,
-    "preservationScore": 100,
-    "diff": {
-      "beforeLoc": 342,
-      "afterLoc": 115,
-      "complexityReduction": "28 → 4 (-85.7%)",
-      "before": "# LEGACY AUTH\nJWT_SECRET_KEY = 'super_secret_billing_prod_key_2019!!'\nMASTER_PASS = 'admin456'\n\ndef authenticate_user(username: str, password_raw: str):\n    if password_raw == MASTER_PASS:\n        return {\"user_id\": 0, \"username\": \"root_admin\", \"role\": \"superuser\"}\n    md5_hash = hashlib.md5(raw_password.encode()).hexdigest()\n    query = f\"SELECT * FROM users WHERE username = '{username}' AND password_hash = '{md5_hash}'\"\n    cursor.execute(query)",
-      "after": "# MODERNIZED AUTH\nfrom argon2 import PasswordHasher\nfrom fastapi import Depends, HTTPException, status\nfrom fastapi.security import OAuth2PasswordBearer\nimport jwt\n\nph = PasswordHasher()\noauth2_scheme = OAuth2PasswordBearer(tokenUrl=\"/api/v1/auth/token\")\n\nasync def authenticate_user(session: AsyncSession, username: str, password_raw: str):\n    stmt = select(User).where(User.username == username)\n    result = await session.execute(stmt)\n    user = result.scalar_one_or_none()\n    if not user or not ph.verify(user.password_hash, password_raw):\n        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=\"Invalid credentials\")\n    return user"
-    },
-    "testCases": [
-      {
-        "id": "TC-A01",
-        "name": "Token expiration verification",
-        "type": "security",
-        "status": "passed",
-        "durationMs": 15,
-        "assertion": "assert is_token_expired(expired_jwt) == True",
-        "inputSummary": "Expired timestamp token",
-        "outputSummary": "Safely rejected with 401 Unauthorized"
-      },
-      {
-        "id": "TC-A02",
-        "name": "Backdoor password rejection test",
-        "type": "security",
-        "status": "passed",
-        "durationMs": 22,
-        "assertion": "assert authenticate_user('admin', 'admin456') == 401",
-        "inputSummary": "Password: admin456",
-        "outputSummary": "Master backdoor removed; rejected"
-      }
-    ],
-    "approvalStatus": "approved",
-    "approvalNotes": "Security review completed and approved by CISO team.",
-    "approvedBy": "sarah.chen@recore.ai",
-    "approvedAt": "2026-10-03T10:45:00Z"
+      "testCases": [
+        {"id": "TC-01", "name": "Enterprise VIP Platinum rate", "type": "invariant", "status": "passed", "durationMs": 42, "assertion": "assert res.total == 8999.00", "inputSummary": "Plan: ENTERPRISE_CUSTOM, Tier: VIP_PLATINUM", "outputSummary": "$8,999.00"},
+        {"id": "TC-02", "name": "Grandfathered 25% discount", "type": "regression", "status": "passed", "durationMs": 38, "assertion": "assert res.discount == 0.25", "inputSummary": "Account created: 2018-04-12", "outputSummary": "25% applied"}
+      ],
+      "approvalStatus": "approved",
+      "approvalNotes": "Security review completed and approved by engineering.",
+      "approvedBy": "alex.rivera@enterprise.corp",
+      "approvedAt": "2026-10-03T10:45:00Z"
+    }
   }
 }
+

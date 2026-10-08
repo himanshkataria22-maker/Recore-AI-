@@ -1,8 +1,44 @@
 [
   {
+    "id": "accounts",
+    "name": "accounts.py",
+    "path": "bank_legacy/accounts.py",
+    "loc": 12,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-ACCOUNTS-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for accounts.py.",
+        "snippet": "# Missing test suite for accounts.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db"
+    ],
+    "usedBy": [
+      "transactions"
+    ],
+    "status": "legacy",
+    "summary": "accounts.py module managing accounts logic with 1 static analysis findings.",
+    "rawCode": "import db\n\ndef open_account(holder, deposit):\n    # Business rule 1: minimum opening deposit is 1000\n    if deposit < 1000:\n        return \"MIN_DEPOSIT\"\n    c = db.get_conn()\n    cur = c.execute(\"INSERT INTO accounts (holder, balance) VALUES (?,?)\", (holder, deposit))\n    c.commit()\n    return cur.lastrowid\n\ndef get_balance(account_id):\n    row = db.get_conn().execute(\"SELECT balance FROM accounts WHERE id = ?\", (account_id,)).fetchone()\n    return row[0] if row else None\n",
+    "aiExplanation": "Analysis of accounts.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:16:00.768650Z"
+  },
+  {
     "id": "auth",
     "name": "auth.py",
-    "path": "shop_legacy/auth.py",
+    "path": "bank_legacy/auth.py",
     "loc": 25,
     "complexity": 4,
     "hasTests": false,
@@ -16,7 +52,7 @@
         "severity": "medium",
         "line": 7,
         "description": "Insecure legacy MD5 hashing routine used without salt or key stretching.",
-        "snippet": "return hashlib.md5(p.encode()).hexdigest()   # deprecated / weak hash",
+        "snippet": "return hashlib.md5(p.encode()).hexdigest()   # weak hash",
         "remediation": "Migrate password hashing to Argon2id or bcrypt with appropriate work factors.",
         "cwe": "CWE-328"
       },
@@ -42,59 +78,22 @@
       }
     ],
     "dependsOn": [
-      "db_utils"
+      "db"
     ],
     "usedBy": [],
     "status": "legacy",
     "summary": "auth.py module managing auth logic with 3 static analysis findings.",
-    "rawCode": "import hashlib\nimport db_utils\n\nMAX_FAILED = 3\n\ndef hash_password(p):\n    return hashlib.md5(p.encode()).hexdigest()   # deprecated / weak hash\n\ndef register(username, password):\n    c = db_utils.get_conn()\n    c.execute(\"INSERT INTO users (username, password) VALUES (?,?)\", (username, hash_password(password)))\n    c.commit()\n\ndef login(username, password):\n    c = db_utils.get_conn()\n    # SQL injection #2\n    row = c.execute(\"SELECT id, password, failed FROM users WHERE username = '%s'\" % username).fetchone()\n    if not row:\n        return \"NO_USER\"\n    # Business rule 4: account locks after 3 failed attempts\n    if row[2] >= MAX_FAILED:\n        return \"LOCKED\"\n    if row[1] == hash_password(password):\n        c.execute(\"UPDATE users SET failed = 0 WHERE id = ?\", (row[0],))\n        c.commit()\n        return \"OK\"\n    c.execute(\"UPDATE users SET failed = failed + 1 WHERE id = ?\", (row[0],))\n    c.commit()\n    return \"BAD_PASSWORD\"\n",
+    "rawCode": "import hashlib\nimport db\n\nMAX_FAILED = 3\n\ndef hash_password(p):\n    return hashlib.md5(p.encode()).hexdigest()   # weak hash\n\ndef register(username, password):\n    c = db.get_conn()\n    c.execute(\"INSERT INTO users (username, password) VALUES (?,?)\", (username, hash_password(password)))\n    c.commit()\n\ndef login(username, password):\n    c = db.get_conn()\n    # SQL injection #2\n    row = c.execute(\"SELECT id, password, failed FROM users WHERE username = '%s'\" % username).fetchone()\n    if not row:\n        return \"NO_USER\"\n    # Business rule 5: lock after 3 failed attempts\n    if row[2] >= MAX_FAILED:\n        return \"LOCKED\"\n    if row[1] == hash_password(password):\n        c.execute(\"UPDATE users SET failed = 0 WHERE id = ?\", (row[0],))\n        c.commit()\n        return \"OK\"\n    c.execute(\"UPDATE users SET failed = failed + 1 WHERE id = ?\", (row[0],))\n    c.commit()\n    return \"BAD_PASSWORD\"\n",
     "aiExplanation": "Analysis of auth.py completed with 3 issues detected and cyclomatic complexity of 4.",
     "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
     "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
-    "lastAnalyzed": "2026-10-06T17:00:55.755807Z"
-  },
-  {
-    "id": "billing",
-    "name": "billing.py",
-    "path": "shop_legacy/billing.py",
-    "loc": 10,
-    "complexity": 3,
-    "hasTests": false,
-    "testCoverage": 0,
-    "riskScore": 32,
-    "riskLevel": "medium",
-    "issues": [
-      {
-        "id": "ISSUE-BILLING-1",
-        "type": "no_tests",
-        "severity": "high",
-        "line": 1,
-        "description": "Zero automated unit test coverage or regression suite found for billing.py.",
-        "snippet": "# Missing test suite for billing.py",
-        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
-        "cwe": "CWE-1077"
-      }
-    ],
-    "dependsOn": [
-      "db_utils",
-      "pricing"
-    ],
-    "usedBy": [
-      "invoice"
-    ],
-    "status": "legacy",
-    "summary": "billing.py module managing billing logic with 1 static analysis findings.",
-    "rawCode": "import db_utils\nimport pricing\n\ndef checkout(customer_name, city, items):\n    subtotal = sum(price * qty for price, qty in items)\n    cust = db_utils.find_customer(customer_name)\n    if not cust:\n        return None\n    bill = pricing.final_price(subtotal)\n    db_utils.save_order(cust[0][0], city, bill[\"total\"])\n    return bill\n",
-    "aiExplanation": "Analysis of billing.py completed with 1 issues detected and cyclomatic complexity of 3.",
-    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
-    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
-    "lastAnalyzed": "2026-10-06T17:00:55.755807Z"
+    "lastAnalyzed": "2026-10-08T07:16:00.768650Z"
   },
   {
     "id": "config",
     "name": "config.py",
-    "path": "shop_legacy/config.py",
-    "loc": 5,
+    "path": "bank_legacy/config.py",
+    "loc": 6,
     "complexity": 1,
     "hasTests": false,
     "testCoverage": 0,
@@ -107,7 +106,7 @@
         "severity": "critical",
         "line": 4,
         "description": "Hardcoded authentication secret or master password in variable assignment.",
-        "snippet": "SECRET_KEY = \"shop-secret-key-2014\"  # hardcoded secret",
+        "snippet": "API_KEY = \"sk-live-9f8e7d6c5b4a\"       # hardcoded secret",
         "remediation": "Extract credentials to KMS, AWS Secrets Manager, or environment variables using Pydantic BaseSettings.",
         "cwe": "CWE-798"
       },
@@ -124,22 +123,22 @@
     ],
     "dependsOn": [],
     "usedBy": [
-      "db_utils",
-      "pricing"
+      "db",
+      "transactions"
     ],
     "status": "legacy",
     "summary": "config.py module managing config logic with 2 static analysis findings.",
-    "rawCode": "# Shop configuration (legacy)\nDB_PATH = \":memory:\"\nDB_PASSWORD = \"admin123\"            # hardcoded secret\nSECRET_KEY = \"shop-secret-key-2014\"  # hardcoded secret\nGST_RATE = 0.18\n",
+    "rawCode": "# Bank configuration (legacy)\nDB_PATH = \":memory:\"\nADMIN_PASSWORD = \"bank@123\"            # hardcoded secret\nAPI_KEY = \"sk-live-9f8e7d6c5b4a\"       # hardcoded secret\nDAILY_LIMIT = 50000\nMIN_BALANCE = 1000\n",
     "aiExplanation": "Analysis of config.py completed with 2 issues detected and cyclomatic complexity of 1.",
     "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
     "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
-    "lastAnalyzed": "2026-10-06T17:00:55.755807Z"
+    "lastAnalyzed": "2026-10-08T07:16:00.768650Z"
   },
   {
-    "id": "db_utils",
-    "name": "db_utils.py",
-    "path": "shop_legacy/db_utils.py",
-    "loc": 22,
+    "id": "db",
+    "name": "db.py",
+    "path": "bank_legacy/db.py",
+    "loc": 17,
     "complexity": 2,
     "hasTests": false,
     "testCoverage": 0,
@@ -147,12 +146,12 @@
     "riskLevel": "medium",
     "issues": [
       {
-        "id": "ISSUE-DB_UTILS-1",
+        "id": "ISSUE-DB-1",
         "type": "no_tests",
         "severity": "high",
         "line": 1,
-        "description": "Zero automated unit test coverage or regression suite found for db_utils.py.",
-        "snippet": "# Missing test suite for db_utils.py",
+        "description": "Zero automated unit test coverage or regression suite found for db.py.",
+        "snippet": "# Missing test suite for db.py",
         "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
         "cwe": "CWE-1077"
       }
@@ -161,168 +160,132 @@
       "config"
     ],
     "usedBy": [
+      "accounts",
       "auth",
-      "billing",
-      "report"
+      "statements",
+      "transactions"
     ],
     "status": "legacy",
-    "summary": "db_utils.py module managing db utils logic with 1 static analysis findings.",
-    "rawCode": "import sqlite3\nimport config\n\n_conn = None\n\ndef get_conn():\n    global _conn\n    if _conn is None:\n        _conn = sqlite3.connect(config.DB_PATH)\n        _conn.executescript(\"\"\"\n            CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, failed INTEGER DEFAULT 0);\n            CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, city TEXT);\n            CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, city TEXT, total REAL);\n            INSERT INTO customers VALUES (1,'Asha','Delhi'),(2,'Ravi','Mumbai');\n        \"\"\")\n    return _conn\n\ndef find_customer(name):\n    # SQL injection #1\n    q = \"SELECT id, name, city FROM customers WHERE name = '\" + name + \"'\"\n    return get_conn().execute(q).fetchall()\n\ndef save_order(customer_id, city, total):\n    c = get_conn()\n    c.execute(\"INSERT INTO orders (customer_id, city, total) VALUES (?,?,?)\", (customer_id, city, total))\n    c.commit()\n",
-    "aiExplanation": "Analysis of db_utils.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "summary": "db.py module managing db logic with 1 static analysis findings.",
+    "rawCode": "import sqlite3\nimport config\n\n_conn = None\n\ndef get_conn():\n    global _conn\n    if _conn is None:\n        _conn = sqlite3.connect(config.DB_PATH)\n        _conn.executescript(\"\"\"\n            CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, failed INTEGER DEFAULT 0);\n            CREATE TABLE accounts (id INTEGER PRIMARY KEY, holder TEXT, balance REAL);\n            CREATE TABLE txns (id INTEGER PRIMARY KEY, account_id INTEGER, kind TEXT, amount REAL, day TEXT);\n        \"\"\")\n    return _conn\n\ndef find_account(holder):\n    # SQL injection #1\n    q = \"SELECT id, holder, balance FROM accounts WHERE holder = '\" + holder + \"'\"\n    return get_conn().execute(q).fetchall()\n",
+    "aiExplanation": "Analysis of db.py completed with 1 issues detected and cyclomatic complexity of 2.",
     "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
     "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
-    "lastAnalyzed": "2026-10-06T17:00:55.755807Z"
+    "lastAnalyzed": "2026-10-08T07:16:00.768650Z"
   },
   {
-    "id": "discounts",
-    "name": "discounts.py",
-    "path": "shop_legacy/discounts.py",
-    "loc": 5,
+    "id": "interest",
+    "name": "interest.py",
+    "path": "bank_legacy/interest.py",
+    "loc": 4,
     "complexity": 2,
     "hasTests": false,
     "testCoverage": 0,
-    "riskScore": 32,
-    "riskLevel": "medium",
+    "riskScore": 27,
+    "riskLevel": "low",
     "issues": [
       {
-        "id": "ISSUE-DISCOUNTS-1",
+        "id": "ISSUE-INTEREST-1",
         "type": "no_tests",
         "severity": "high",
         "line": 1,
-        "description": "Zero automated unit test coverage or regression suite found for discounts.py.",
-        "snippet": "# Missing test suite for discounts.py",
+        "description": "Zero automated unit test coverage or regression suite found for interest.py.",
+        "snippet": "# Missing test suite for interest.py",
         "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
         "cwe": "CWE-1077"
       }
     ],
     "dependsOn": [],
-    "usedBy": [
-      "pricing"
-    ],
+    "usedBy": [],
     "status": "legacy",
-    "summary": "discounts.py module managing discounts logic with 1 static analysis findings.",
-    "rawCode": "def bulk_discount(subtotal):\n    # Business rule 1: 10% discount on orders above 1000\n    if subtotal > 1000:\n        return round(subtotal * 0.10, 2)\n    return 0.0\n",
-    "aiExplanation": "Analysis of discounts.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "summary": "interest.py module managing interest logic with 1 static analysis findings.",
+    "rawCode": "def monthly_interest(balance):\n    # Business rule 4: 3.5% a year, 4.5% once balance reaches 100000\n    rate = 0.045 if balance >= 100000 else 0.035\n    return round(balance * rate / 12, 2)\n",
+    "aiExplanation": "Analysis of interest.py completed with 1 issues detected and cyclomatic complexity of 2.",
     "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
     "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
-    "lastAnalyzed": "2026-10-06T17:00:55.755807Z"
+    "lastAnalyzed": "2026-10-08T07:16:00.768650Z"
   },
   {
-    "id": "invoice",
-    "name": "invoice.py",
-    "path": "shop_legacy/invoice.py",
-    "loc": 7,
-    "complexity": 2,
-    "hasTests": false,
-    "testCoverage": 0,
-    "riskScore": 32,
-    "riskLevel": "medium",
-    "issues": [
-      {
-        "id": "ISSUE-INVOICE-1",
-        "type": "no_tests",
-        "severity": "high",
-        "line": 1,
-        "description": "Zero automated unit test coverage or regression suite found for invoice.py.",
-        "snippet": "# Missing test suite for invoice.py",
-        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
-        "cwe": "CWE-1077"
-      }
-    ],
-    "dependsOn": [
-      "billing"
-    ],
-    "usedBy": [
-      "report"
-    ],
-    "status": "legacy",
-    "summary": "invoice.py module managing invoice logic with 1 static analysis findings.",
-    "rawCode": "import billing\n\ndef make_invoice(customer_name, city, items):\n    bill = billing.checkout(customer_name, city, items)\n    if bill is None:\n        return \"Customer not found\"\n    return (\"INVOICE for %s\\nSubtotal: %.2f\\nDiscount: %.2f\\nTax: %.2f\\nShipping: %.2f\\nTOTAL: %.2f\"\n            % (customer_name, bill[\"subtotal\"], bill[\"discount\"], bill[\"tax\"], bill[\"shipping\"], bill[\"total\"]))\n",
-    "aiExplanation": "Analysis of invoice.py completed with 1 issues detected and cyclomatic complexity of 2.",
-    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
-    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
-    "lastAnalyzed": "2026-10-06T17:00:55.755807Z"
-  },
-  {
-    "id": "pricing",
-    "name": "pricing.py",
-    "path": "shop_legacy/pricing.py",
-    "loc": 13,
-    "complexity": 2,
-    "hasTests": false,
-    "testCoverage": 0,
-    "riskScore": 32,
-    "riskLevel": "medium",
-    "issues": [
-      {
-        "id": "ISSUE-PRICING-1",
-        "type": "no_tests",
-        "severity": "high",
-        "line": 1,
-        "description": "Zero automated unit test coverage or regression suite found for pricing.py.",
-        "snippet": "# Missing test suite for pricing.py",
-        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
-        "cwe": "CWE-1077"
-      }
-    ],
-    "dependsOn": [
-      "config",
-      "discounts"
-    ],
-    "usedBy": [
-      "billing"
-    ],
-    "status": "legacy",
-    "summary": "pricing.py module managing pricing logic with 1 static analysis findings.",
-    "rawCode": "import config\nimport discounts\n\ndef shipping(subtotal):\n    # Business rule 2: free shipping above 500, else flat 50\n    return 0.0 if subtotal > 500 else 50.0\n\ndef final_price(subtotal):\n    d = discounts.bulk_discount(subtotal)\n    taxable = subtotal - d\n    # Business rule 3: 18% GST on discounted amount\n    tax = round(taxable * config.GST_RATE, 2)\n    return {\"subtotal\": subtotal, \"discount\": d, \"tax\": tax,\n            \"shipping\": shipping(subtotal),\n            \"total\": round(taxable + tax + shipping(subtotal), 2)}\n",
-    "aiExplanation": "Analysis of pricing.py completed with 1 issues detected and cyclomatic complexity of 2.",
-    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
-    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
-    "lastAnalyzed": "2026-10-06T17:00:55.755807Z"
-  },
-  {
-    "id": "report",
-    "name": "report.py",
-    "path": "shop_legacy/report.py",
-    "loc": 9,
-    "complexity": 2,
+    "id": "statements",
+    "name": "statements.py",
+    "path": "bank_legacy/statements.py",
+    "loc": 11,
+    "complexity": 3,
     "hasTests": false,
     "testCoverage": 0,
     "riskScore": 47,
     "riskLevel": "medium",
     "issues": [
       {
-        "id": "ISSUE-REPORT-1",
+        "id": "ISSUE-STATEMENTS-1",
         "type": "sql_injection",
         "severity": "critical",
-        "line": 6,
+        "line": 9,
         "description": "SQL query constructed via dynamic string formatting/interpolation exposes database to injection attacks.",
-        "snippet": "q = f\"SELECT id, total FROM orders WHERE city = '{city}'\"",
+        "snippet": "q = f\"SELECT kind, amount FROM txns WHERE account_id = {acc[0][0]} ORDER BY id\"",
         "remediation": "Use parameterized SQL queries with bind parameter placeholders.",
         "cwe": "CWE-89"
       },
       {
-        "id": "ISSUE-REPORT-2",
+        "id": "ISSUE-STATEMENTS-2",
         "type": "no_tests",
         "severity": "high",
         "line": 1,
-        "description": "Zero automated unit test coverage or regression suite found for report.py.",
-        "snippet": "# Missing test suite for report.py",
+        "description": "Zero automated unit test coverage or regression suite found for statements.py.",
+        "snippet": "# Missing test suite for statements.py",
         "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
         "cwe": "CWE-1077"
       }
     ],
     "dependsOn": [
-      "db_utils",
-      "invoice"
+      "db",
+      "transactions"
     ],
     "usedBy": [],
     "status": "legacy",
-    "summary": "report.py module managing report logic with 2 static analysis findings.",
-    "rawCode": "import db_utils\nimport invoice\n\ndef orders_by_city(city):\n    # SQL injection #3\n    q = f\"SELECT id, total FROM orders WHERE city = '{city}'\"\n    return db_utils.get_conn().execute(q).fetchall()\n\ndef daily_summary(city):\n    rows = orders_by_city(city)\n    return {\"city\": city, \"orders\": len(rows), \"revenue\": round(sum(r[1] for r in rows), 2)}\n",
-    "aiExplanation": "Analysis of report.py completed with 2 issues detected and cyclomatic complexity of 2.",
+    "summary": "statements.py module managing statements logic with 2 static analysis findings.",
+    "rawCode": "import db\nimport transactions\n\ndef statement(holder):\n    acc = db.find_account(holder)\n    if not acc:\n        return \"NO_ACCOUNT\"\n    # SQL injection #3\n    q = f\"SELECT kind, amount FROM txns WHERE account_id = {acc[0][0]} ORDER BY id\"\n    rows = db.get_conn().execute(q).fetchall()\n    lines = [\"%s %.2f\" % (k, a) for k, a in rows]\n    return \"Statement for %s\\n%s\\nBalance: %.2f\" % (holder, \"\\n\".join(lines), acc[0][2])\n",
+    "aiExplanation": "Analysis of statements.py completed with 2 issues detected and cyclomatic complexity of 3.",
     "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
     "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
-    "lastAnalyzed": "2026-10-06T17:00:55.755807Z"
+    "lastAnalyzed": "2026-10-08T07:16:00.768650Z"
+  },
+  {
+    "id": "transactions",
+    "name": "transactions.py",
+    "path": "bank_legacy/transactions.py",
+    "loc": 39,
+    "complexity": 4,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-TRANSACTIONS-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for transactions.py.",
+        "snippet": "# Missing test suite for transactions.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "accounts",
+      "config",
+      "db"
+    ],
+    "usedBy": [
+      "statements"
+    ],
+    "status": "legacy",
+    "summary": "transactions.py module managing transactions logic with 1 static analysis findings.",
+    "rawCode": "import datetime\nimport config\nimport db\nimport accounts\n\ndef _today():\n    return datetime.datetime.utcnow().strftime(\"%Y-%m-%d\")   # deprecated API\n\ndef _withdrawn_today(account_id):\n    row = db.get_conn().execute(\n        \"SELECT COALESCE(SUM(amount),0) FROM txns WHERE account_id = ? AND kind = 'W' AND day = ?\",\n        (account_id, _today())).fetchone()\n    return row[0]\n\ndef withdraw(account_id, amount):\n    bal = accounts.get_balance(account_id)\n    if bal is None:\n        return \"NO_ACCOUNT\"\n    # Business rule 2: daily withdrawal limit is 50000\n    if _withdrawn_today(account_id) + amount > config.DAILY_LIMIT:\n        return \"LIMIT_EXCEEDED\"\n    if bal - amount < config.MIN_BALANCE:\n        return \"MIN_BALANCE\"\n    c = db.get_conn()\n    c.execute(\"UPDATE accounts SET balance = balance - ? WHERE id = ?\", (amount, account_id))\n    c.execute(\"INSERT INTO txns (account_id, kind, amount, day) VALUES (?,?,?,?)\", (account_id, \"W\", amount, _today()))\n    c.commit()\n    return \"OK\"\n\ndef deposit(account_id, amount):\n    c = db.get_conn()\n    c.execute(\"UPDATE accounts SET balance = balance + ? WHERE id = ?\", (amount, account_id))\n    c.execute(\"INSERT INTO txns (account_id, kind, amount, day) VALUES (?,?,?,?)\", (account_id, \"D\", amount, _today()))\n    c.commit()\n    return \"OK\"\n\ndef transfer(src, dst, amount):\n    # Business rule 3: 0.5% transfer fee on amounts above 10000\n    fee = round(amount * 0.005, 2) if amount > 10000 else 0.0\n    r = withdraw(src, amount + fee)\n    if r != \"OK\":\n        return r\n    deposit(dst, amount)\n    return \"OK\"\n",
+    "aiExplanation": "Analysis of transactions.py completed with 1 issues detected and cyclomatic complexity of 4.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T07:16:00.768650Z"
   }
 ]

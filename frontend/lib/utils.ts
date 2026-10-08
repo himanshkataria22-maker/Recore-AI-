@@ -24,15 +24,15 @@ export function getRiskColor(level: RiskLevel): string {
 export function getRiskBadgeClasses(level: RiskLevel): string {
   switch (level) {
     case "critical":
-      return "bg-rose-500/10 text-rose-400 border-rose-500/20";
+      return "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20";
     case "high":
-      return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+      return "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20";
     case "medium":
-      return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+      return "bg-yellow-50 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-500/20";
     case "low":
-      return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+      return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20";
     default:
-      return "bg-slate-500/10 text-slate-400 border-slate-500/20";
+      return "bg-slate-100 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400 border border-slate-200 dark:border-slate-500/20";
   }
 }
 

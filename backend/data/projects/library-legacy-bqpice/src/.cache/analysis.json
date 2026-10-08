@@ -1,0 +1,246 @@
+[
+  {
+    "id": "auth",
+    "name": "auth.py",
+    "path": "library_legacy/auth.py",
+    "loc": 25,
+    "complexity": 4,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 53,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-AUTH-1",
+        "type": "deprecated_api",
+        "severity": "medium",
+        "line": 7,
+        "description": "Insecure legacy MD5 hashing routine used without salt or key stretching.",
+        "snippet": "return hashlib.md5(p.encode()).hexdigest()   # weak hash",
+        "remediation": "Migrate password hashing to Argon2id or bcrypt with appropriate work factors.",
+        "cwe": "CWE-328"
+      },
+      {
+        "id": "ISSUE-AUTH-2",
+        "type": "sql_injection",
+        "severity": "critical",
+        "line": 17,
+        "description": "SQL query constructed via dynamic string formatting/interpolation exposes database to injection attacks.",
+        "snippet": "row = c.execute(\"SELECT id, password, failed FROM users WHERE username = '%s'\" % username).fetchone()",
+        "remediation": "Use parameterized SQL queries with bind parameter placeholders.",
+        "cwe": "CWE-89"
+      },
+      {
+        "id": "ISSUE-AUTH-3",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for auth.py.",
+        "snippet": "# Missing test suite for auth.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "auth.py module managing auth logic with 3 static analysis findings.",
+    "rawCode": "import hashlib\nimport db\n\nMAX_FAILED = 3\n\ndef hash_password(p):\n    return hashlib.md5(p.encode()).hexdigest()   # weak hash\n\ndef register(username, password):\n    c = db.get_conn()\n    c.execute(\"INSERT INTO users (username, password) VALUES (?,?)\", (username, hash_password(password)))\n    c.commit()\n\ndef login(username, password):\n    c = db.get_conn()\n    # SQL injection #2\n    row = c.execute(\"SELECT id, password, failed FROM users WHERE username = '%s'\" % username).fetchone()\n    if not row:\n        return \"NO_USER\"\n    # Business rule: account locks after 3 failed attempts\n    if row[2] >= MAX_FAILED:\n        return \"LOCKED\"\n    if row[1] == hash_password(password):\n        c.execute(\"UPDATE users SET failed = 0 WHERE id = ?\", (row[0],))\n        c.commit()\n        return \"OK\"\n    c.execute(\"UPDATE users SET failed = failed + 1 WHERE id = ?\", (row[0],))\n    c.commit()\n    return \"BAD_PASSWORD\"\n",
+    "aiExplanation": "Analysis of auth.py completed with 3 issues detected and cyclomatic complexity of 4.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T08:21:55.297639Z"
+  },
+  {
+    "id": "config",
+    "name": "config.py",
+    "path": "library_legacy/config.py",
+    "loc": 5,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-CONFIG-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for config.py.",
+        "snippet": "# Missing test suite for config.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [],
+    "usedBy": [
+      "db",
+      "loans"
+    ],
+    "status": "legacy",
+    "summary": "config.py module managing config logic with 1 static analysis findings.",
+    "rawCode": "# Library configuration (legacy)\nDB_PATH = \":memory:\"\nDB_PASSWORD = \"lib#pass99\"          # hardcoded secret\nSECRET_TOKEN = \"lib-token-abc123\"   # hardcoded secret\nLOAN_DAYS_EXPR = \"7 * 2\"\n",
+    "aiExplanation": "Analysis of config.py completed with 1 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T08:21:55.297639Z"
+  },
+  {
+    "id": "db",
+    "name": "db.py",
+    "path": "library_legacy/db.py",
+    "loc": 23,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 37,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-DB-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for db.py.",
+        "snippet": "# Missing test suite for db.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "config"
+    ],
+    "usedBy": [
+      "auth",
+      "loans",
+      "members",
+      "report"
+    ],
+    "status": "legacy",
+    "summary": "db.py module managing db logic with 1 static analysis findings.",
+    "rawCode": "import sqlite3\nimport config\n\n_conn = None\n\ndef get_conn():\n    global _conn\n    if _conn is None:\n        _conn = sqlite3.connect(config.DB_PATH)\n        _conn.executescript(\"\"\"\n            CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT, failed INTEGER DEFAULT 0);\n            CREATE TABLE members (id INTEGER PRIMARY KEY, name TEXT, tier TEXT);\n            CREATE TABLE books (id INTEGER PRIMARY KEY, title TEXT, copies INTEGER);\n            CREATE TABLE loans (id INTEGER PRIMARY KEY, member_id INTEGER, book_id INTEGER);\n        \"\"\")\n    return _conn\n\ndef find_member(name):\n    # SQL injection #1\n    q = \"SELECT id, name, tier FROM members WHERE name = '{}'\".format(name)\n    return get_conn().execute(q).fetchall()\n\ndef add_book(title, copies):\n    c = get_conn()\n    cur = c.execute(\"INSERT INTO books (title, copies) VALUES (?,?)\", (title, copies))\n    c.commit()\n    return cur.lastrowid\n\n",
+    "aiExplanation": "Analysis of db.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T08:21:55.297639Z"
+  },
+  {
+    "id": "loans",
+    "name": "loans.py",
+    "path": "library_legacy/loans.py",
+    "loc": 27,
+    "complexity": 5,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-LOANS-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for loans.py.",
+        "snippet": "# Missing test suite for loans.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "config",
+      "db",
+      "members"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "loans.py module managing loans logic with 1 static analysis findings.",
+    "rawCode": "import config\nimport db\nimport members\n\ndef borrow(member_id, book_id):\n    limit = members.loan_limit(member_id)\n    if limit is None:\n        return \"NO_MEMBER\"\n    c = db.get_conn()\n    held = c.execute(\"SELECT COUNT(*) FROM loans WHERE member_id = ?\", (member_id,)).fetchone()[0]\n    if held >= limit:\n        return \"LIMIT_REACHED\"\n    copies = c.execute(\"SELECT copies FROM books WHERE id = ?\", (book_id,)).fetchone()\n    if not copies or copies[0] <= 0:\n        return \"UNAVAILABLE\"\n    c.execute(\"UPDATE books SET copies = copies - 1 WHERE id = ?\", (book_id,))\n    c.execute(\"INSERT INTO loans (member_id, book_id) VALUES (?,?)\", (member_id, book_id))\n    c.commit()\n    return \"OK\"\n\ndef loan_days():\n    return eval(config.LOAN_DAYS_EXPR)   # eval on a config string\n\ndef fine(days_late):\n    if days_late <= 0:\n        return 0\n    # Business rule: 2 per day for the first 7 days late, 5 per day after\n    amount = min(days_late, 7) * 2 + max(days_late - 7, 0) * 5\n    # Business rule: a fine never exceeds 500\n    return min(amount, 500)\n",
+    "aiExplanation": "Analysis of loans.py completed with 1 issues detected and cyclomatic complexity of 5.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T08:21:55.297639Z"
+  },
+  {
+    "id": "members",
+    "name": "members.py",
+    "path": "library_legacy/members.py",
+    "loc": 14,
+    "complexity": 2,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 32,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-MEMBERS-1",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for members.py.",
+        "snippet": "# Missing test suite for members.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db"
+    ],
+    "usedBy": [
+      "loans"
+    ],
+    "status": "legacy",
+    "summary": "members.py module managing members logic with 1 static analysis findings.",
+    "rawCode": "import db\n\nLIMITS = {\"basic\": 3, \"premium\": 10}\n\ndef join(name, tier):\n    # Business rule: tier must be basic or premium\n    if tier not in LIMITS:\n        return \"INVALID_TIER\"\n    c = db.get_conn()\n    cur = c.execute(\"INSERT INTO members (name, tier) VALUES (?,?)\", (name, tier))\n    c.commit()\n    return cur.lastrowid\n\ndef loan_limit(member_id):\n    row = db.get_conn().execute(\"SELECT tier FROM members WHERE id = ?\", (member_id,)).fetchone()\n    # Business rule: basic members hold 3 books, premium members 10\n    return LIMITS[row[0]] if row else None\n",
+    "aiExplanation": "Analysis of members.py completed with 1 issues detected and cyclomatic complexity of 2.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T08:21:55.297639Z"
+  },
+  {
+    "id": "report",
+    "name": "report.py",
+    "path": "library_legacy/report.py",
+    "loc": 7,
+    "complexity": 1,
+    "hasTests": false,
+    "testCoverage": 0,
+    "riskScore": 47,
+    "riskLevel": "medium",
+    "issues": [
+      {
+        "id": "ISSUE-REPORT-1",
+        "type": "sql_injection",
+        "severity": "critical",
+        "line": 5,
+        "description": "SQL query constructed via dynamic string formatting/interpolation exposes database to injection attacks.",
+        "snippet": "q = f\"SELECT loans.book_id FROM loans JOIN members ON members.id = loans.member_id WHERE members.name = '{name}'\"",
+        "remediation": "Use parameterized SQL queries with bind parameter placeholders.",
+        "cwe": "CWE-89"
+      },
+      {
+        "id": "ISSUE-REPORT-2",
+        "type": "no_tests",
+        "severity": "high",
+        "line": 1,
+        "description": "Zero automated unit test coverage or regression suite found for report.py.",
+        "snippet": "# Missing test suite for report.py",
+        "remediation": "Generate behavioral test suite with parameterized pytest test matrices.",
+        "cwe": "CWE-1077"
+      }
+    ],
+    "dependsOn": [
+      "db"
+    ],
+    "usedBy": [],
+    "status": "legacy",
+    "summary": "report.py module managing report logic with 2 static analysis findings.",
+    "rawCode": "import db\n\ndef loans_for_member(name):\n    # SQL injection #3\n    q = f\"SELECT loans.book_id FROM loans JOIN members ON members.id = loans.member_id WHERE members.name = '{name}'\"\n    return db.get_conn().execute(q).fetchall()\n\ndef member_summary(name):\n    return {\"member\": name, \"loans\": len(loans_for_member(name))}\n",
+    "aiExplanation": "Analysis of report.py completed with 2 issues detected and cyclomatic complexity of 1.",
+    "modernizationRecommendation": "Modernize with Pydantic v2 schemas, type safety, parameterized queries, and async architecture.",
+    "targetStack": "FastAPI + Pydantic v2 + SQLAlchemy 2.0 Async",
+    "lastAnalyzed": "2026-10-08T08:21:55.297639Z"
+  }
+]

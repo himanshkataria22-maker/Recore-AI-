@@ -1,8 +1,8 @@
 """
-Project Summary, Dependency Graph, and Modernization Plan Routes.
+Project Summary, Dependency Graph, and Modernization Plan Routes (Project Scoped).
 """
-from fastapi import APIRouter
-from typing import List, Dict, Any
+from fastapi import APIRouter, HTTPException, Path as APIPath
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 import os
 
@@ -18,35 +18,34 @@ from ..models.schema import (
     TopVulnerabilityItem,
     RecentActivityItem
 )
-from ..analyzer.engine import CodebaseAnalyzer
+from ..projects.manager import project_manager
 from ..planner.plan import generate_modernization_plan, explain_plan_recommendation
 
 router = APIRouter(tags=["project"])
 
-LEGACY_APP_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "sample_legacy_app")
-analyzer = CodebaseAnalyzer(LEGACY_APP_PATH)
 
-@router.get("/project/summary", response_model=ProjectSummary)
-def get_project_summary():
-    """Calculates overall repository health, LOC, vulnerability breakdown, and metrics."""
-    modules = analyzer.analyze()
-    
+def _compute_summary(project_id: str) -> ProjectSummary:
+    meta = project_manager.get_project_meta(project_id)
+    if not meta:
+        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found.")
+
+    modules = project_manager.get_modules(project_id)
+    project_name = meta.get("name", project_id)
+
     total_loc = sum(m.loc for m in modules)
     critical_count = sum(1 for m in modules if m.risk_level == "critical")
     high_count = sum(1 for m in modules if m.risk_level == "high")
     medium_count = sum(1 for m in modules if m.risk_level == "medium")
     low_count = sum(1 for m in modules if m.risk_level == "low")
-    
+
     modernized_count = sum(1 for m in modules if m.status == "modernized")
     modernized_pct = round((modernized_count / len(modules) * 100), 1) if modules else 0.0
-    
+
     avg_complexity = round(sum(m.complexity for m in modules) / len(modules), 1) if modules else 1.0
-    
-    # Calculate health score (0-100)
+
     avg_risk = sum(m.risk_score for m in modules) / len(modules) if modules else 50
     health_score = max(5, min(95, int(100 - avg_risk)))
 
-    # Risk distribution
     risk_distribution = [
         RiskDistributionItem(level="critical", count=critical_count, color="#ef4444"),
         RiskDistributionItem(level="high", count=high_count, color="#f97316"),
@@ -54,7 +53,6 @@ def get_project_summary():
         RiskDistributionItem(level="low", count=low_count, color="#22c55e"),
     ]
 
-    # Aggregate top vulnerabilities
     vuln_map = {}
     for m in modules:
         for iss in m.issues:
@@ -72,37 +70,23 @@ def get_project_summary():
     recent_activity = [
         RecentActivityItem(
             id="ACT-01",
-            type="approval",
-            message="Modernization baseline verified for discounts.py with 100% test parity",
-            timestamp="10 minutes ago",
-            module_id="discounts"
-        ),
-        RecentActivityItem(
-            id="ACT-02",
             type="analysis",
-            message=f"Full AST dependency graph compiled ({len(modules)} modules analyzed)",
-            timestamp="25 minutes ago"
-        ),
-        RecentActivityItem(
-            id="ACT-03",
-            type="warning",
-            message="SQL Injection detected in billing.py and auth.py query routines",
-            timestamp="1 hour ago",
-            module_id="billing"
+            message=f"AST analysis completed for '{project_name}' ({len(modules)} modules indexed)",
+            timestamp="Just now"
         )
     ]
 
     return ProjectSummary(
-        name="LegacyBillingPython",
-        repo="enterprise/legacy-billing-py",
-        branch="main (v2.14-legacy)",
-        last_analysis=datetime.utcnow().isoformat() + "Z",
+        name=project_name,
+        repo=f"project/{project_id}",
+        branch="main",
+        last_analysis=meta.get("completedAt", datetime.utcnow().isoformat() + "Z"),
         total_modules=len(modules),
         total_loc=total_loc,
         critical_risks=critical_count,
         high_risks=high_count,
         modernized_percent=modernized_pct,
-        tests_passing_percent=95.4,
+        tests_passing_percent=0.0,  # Computed from real tests when run
         avg_complexity=avg_complexity,
         overall_health_score=health_score,
         risk_distribution=risk_distribution,
@@ -110,31 +94,18 @@ def get_project_summary():
         recent_activity=recent_activity
     )
 
-@router.get("/graph", response_model=DependencyGraphData)
-def get_dependency_graph():
-    """Calculates node positions and edge connections for React Flow visualization."""
-    modules = analyzer.analyze()
 
-    positions: Dict[str, Dict[str, float]] = {
-        "db_utils": {"x": 500, "y": 50},
-        "config": {"x": 100, "y": 50},
-        "auth": {"x": 220, "y": 180},
-        "notification": {"x": 780, "y": 180},
-        "discounts": {"x": 100, "y": 320},
-        "tax_calculator": {"x": 380, "y": 320},
-        "payment_gateway": {"x": 620, "y": 320},
-        "subscription": {"x": 880, "y": 320},
-        "billing": {"x": 500, "y": 480},
-        "invoice": {"x": 280, "y": 640},
-        "report": {"x": 720, "y": 640},
-        "export_service": {"x": 500, "y": 780},
-        "audit_log": {"x": 860, "y": 50},
-        "app": {"x": 500, "y": 920}
-    }
+def _compute_graph(project_id: str) -> DependencyGraphData:
+    modules = project_manager.get_modules(project_id)
+    if not modules:
+        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found.")
 
+    # Calculate grid positions cleanly for any project modules
     nodes: List[DependencyGraphNode] = []
-    for m in modules:
-        pos = positions.get(m.id, {"x": 300, "y": 300})
+    cols = 3
+    for idx, m in enumerate(modules):
+        x_pos = (idx % cols) * 320 + 100
+        y_pos = (idx // cols) * 180 + 80
         node = DependencyGraphNode(
             id=m.id,
             data={
@@ -149,7 +120,7 @@ def get_dependency_graph():
                 "dependsOnCount": len(m.depends_on),
                 "usedByCount": len(m.used_by),
             },
-            position=DependencyGraphPosition(x=pos["x"], y=pos["y"])
+            position=DependencyGraphPosition(x=x_pos, y=y_pos)
         )
         nodes.append(node)
 
@@ -165,15 +136,56 @@ def get_dependency_graph():
 
     return DependencyGraphData(nodes=nodes, edges=edges)
 
-@router.get("/plan", response_model=ModernizationPlan)
-def get_modernization_plan_route():
-    """Returns prioritized modernization plan and effort projections."""
-    modules = analyzer.analyze()
+
+# Project Scoped Routes
+@router.get("/projects/{project_id}/summary", response_model=ProjectSummary)
+def get_project_summary_scoped(project_id: str):
+    return _compute_summary(project_id)
+
+@router.get("/projects/{project_id}/graph", response_model=DependencyGraphData)
+def get_dependency_graph_scoped(project_id: str):
+    return _compute_graph(project_id)
+
+@router.get("/projects/{project_id}/plan", response_model=ModernizationPlan)
+def get_modernization_plan_scoped(project_id: str):
+    modules = project_manager.get_modules(project_id)
+    if not modules:
+        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found.")
     return generate_modernization_plan(modules)
 
-@router.get("/plan/explain", response_model=PlanExplanation)
-def get_plan_explanation_route():
-    """Explains why the top module was recommended for initial refactoring."""
-    modules = analyzer.analyze()
+@router.get("/projects/{project_id}/plan/explain", response_model=PlanExplanation)
+def get_plan_explanation_scoped(project_id: str):
+    modules = project_manager.get_modules(project_id)
+    if not modules:
+        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found.")
     return explain_plan_recommendation(modules)
 
+
+# Legacy / Un-scoped Fallback Routes (Target active project)
+@router.get("/project/summary", response_model=ProjectSummary)
+def get_project_summary_fallback():
+    latest_id = project_manager.get_latest_project_id()
+    if not latest_id:
+        raise HTTPException(status_code=404, detail="No project has been uploaded yet.")
+    return _compute_summary(latest_id)
+
+@router.get("/graph", response_model=DependencyGraphData)
+def get_dependency_graph_fallback():
+    latest_id = project_manager.get_latest_project_id()
+    if not latest_id:
+        raise HTTPException(status_code=404, detail="No project has been uploaded yet.")
+    return _compute_graph(latest_id)
+
+@router.get("/plan", response_model=ModernizationPlan)
+def get_modernization_plan_fallback():
+    latest_id = project_manager.get_latest_project_id()
+    if not latest_id:
+        raise HTTPException(status_code=404, detail="No project has been uploaded yet.")
+    return get_modernization_plan_scoped(latest_id)
+
+@router.get("/plan/explain", response_model=PlanExplanation)
+def get_plan_explanation_fallback():
+    latest_id = project_manager.get_latest_project_id()
+    if not latest_id:
+        raise HTTPException(status_code=404, detail="No project has been uploaded yet.")
+    return get_plan_explanation_scoped(latest_id)
